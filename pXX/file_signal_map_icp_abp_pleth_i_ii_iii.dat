@@ -1,0 +1,116 @@
+p004904-2193-06-17-03-04 "['AVL', 'MCL', 'ICP', 'AVR', 'RESP', 'AVF', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p004904
+p008848-2148-07-30-17-12 "['ICP', 'ART', 'AVR', 'RESP', 'P1', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V', 'UVP']" p008848
+p011003-2119-05-17-14-20 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p011003
+p016590-2181-05-26-20-15 "['ICP', 'II', 'III', 'I', 'ABP', 'PLETH']" p016590
+p025658-2179-01-15-14-01 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p025658
+p027833-2150-02-27-17-29 "['MCL', 'ICP', 'ART', 'AVR', 'RESP', 'P1', 'UAP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p027833
+p028075-2196-03-14-16-21 "['MCL', 'ICP', 'AVR', 'RESP', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'AOBP', 'V']" p028075
+p028075-2196-03-15-11-41 "['MCL', 'ICP', 'AVR', 'RESP', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p028075
+p028644-2121-07-26-17-13 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p028644
+p029527-2168-03-11-17-54 "['ICP', 'ART', 'AVR', 'RESP', 'LAP', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p029527
+p040673-2125-05-30-21-37 "['ICP', 'AVR', 'RESP', 'LAP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p040673
+p040882-2164-03-04-17-00 "['ICP', 'RESP', 'II', 'PAP', 'III', 'I', 'ABP', 'PLETH', 'V']" p040882
+p043116-2107-04-01-09-22 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p043116
+p043150-2103-07-19-15-26 "['ICP', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p043150
+p043450-2156-09-14-05-10 "['UAP', 'ICP', 'ART', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V', 'UVP']" p043450
+p043571-2141-04-21-22-02 "['ICP', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p043571
+p044061-2136-08-15-20-37 "['ICP', 'AVR', 'RESP', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p044061
+p045703-2168-02-10-14-36 "['AVL', 'MCL', 'ICP', 'AVR', 'RESP', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p045703
+p047983-2117-12-09-16-46 "['MCL', 'ICP', 'ART', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'RAP', 'PLETH', 'V']" p047983
+p048267-2196-02-05-15-18 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p048267
+p048707-2178-05-17-04-13 "['ICP', 'ART', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p048707
+p049613-2181-12-14-16-33 "['ICP', 'ART', 'AVR', 'RESP', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'AOBP', 'V']" p049613
+p049649-2113-05-18-20-32 "['MCL', 'ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p049649
+p049649-2113-05-21-10-24 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p049649
+p049649-2113-05-22-16-53 "['ICP', 'ART', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p049649
+p050302-2174-11-17-03-46 "['ICP', 'ART', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p050302
+p050302-2174-11-17-12-22 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p050302
+p051909-2184-10-25-12-18 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p051909
+p052330-2112-07-15-21-56 "['IC1', 'MCL', 'ICP', 'II', 'III', 'I', 'ABP', 'PLETH']" p052330
+p052710-2167-06-06-18-04 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p052710
+p053404-2144-12-11-22-14 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p053404
+p053567-2183-01-29-14-48 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p053567
+p055332-2193-03-11-11-58 "['ICP', 'ART', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'RAP', 'PLETH', 'V']" p055332
+p055722-2147-05-19-15-19 "['ICP', 'ART', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'RAP', 'PLETH', 'V']" p055722
+p055730-2113-03-30-01-40 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p055730
+p055730-2113-04-03-16-49 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p055730
+p055730-2113-04-06-16-27 "['ICP', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p055730
+p055730-2113-04-19-14-08 "['ICP', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p055730
+p056963-2178-07-17-13-54 "['ICP', 'ART', 'AVR', 'RESP', 'LAP', 'II', 'III', 'I', 'CVP', 'ABP', 'RAP', 'PLETH', 'V', 'UVP']" p056963
+p057001-2133-03-05-12-58 "['ICP', 'ART', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p057001
+p057001-2133-03-06-10-08 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p057001
+p057321-2135-04-04-18-07 "['ICP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH']" p057321
+p058327-2174-01-29-15-27 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p058327
+p059381-2126-11-14-21-33 "['AVL', 'MCL', 'ICP', 'AVR', 'RESP', 'AVF', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p059381
+p059381-2126-11-16-08-51 "['AVL', 'MCL', 'ICP', 'UAP', 'AVR', 'RESP', 'AVF', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p059381
+p059964-2111-03-16-19-19 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p059964
+p059991-2112-10-30-19-42 "['UAP', 'ICP', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p059991
+p059991-2112-10-31-12-20 "['ICP', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p059991
+p059991-2112-11-09-13-38 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p059991
+p060274-2132-11-27-13-49 "['AVL', 'MCL', 'ICP', 'AVR', 'RESP', 'AVF', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p060274
+p061823-2150-03-28-18-59 "['ICP', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p061823
+p061828-2108-06-14-14-42 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p061828
+p061877-2158-07-26-21-57 "['ICP', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p061877
+p062087-2109-05-26-00-53 "['ICP', 'II', 'III', 'I', 'ABP', 'PLETH']" p062087
+p064192-2179-04-16-19-35 "['ICP', 'ART', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'AOBP', 'V']" p064192
+p064260-2181-02-20-10-53 "['MCL', 'ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V', 'BAP']" p064260
+p064361-2180-11-29-09-02 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p064361
+p064906-2133-12-17-10-43 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p064906
+p065180-2114-11-09-21-08 "['MCL', 'ICP', 'AVR', 'RESP', 'AVF', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p065180
+p066105-2177-10-22-16-10 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p066105
+p066507-2132-06-27-18-25 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p066507
+p066727-2146-12-26-01-06 "['MCL', 'ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p066727
+p067735-2200-04-05-01-04 "['ICP', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p067735
+p068425-2154-01-13-16-43 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p068425
+p068564-2119-08-17-12-07 "['ICP', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p068564
+p070330-2141-11-17-12-59 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p070330
+p070420-2174-07-15-22-39 "['ICP', 'ART', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p070420
+p070420-2174-07-16-14-13 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p070420
+p070723-2163-11-18-16-28 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p070723
+p071059-2156-12-27-15-36 "['ICP', 'ART', 'AVR', 'RESP', 'LAP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p071059
+p071059-2157-01-04-06-02 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p071059
+p071059-2157-01-13-10-43 "['ICP', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p071059
+p072236-2150-05-11-11-18 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p072236
+p072377-2150-05-23-09-28 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p072377
+p072627-2131-12-22-22-42 "['ICP', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p072627
+p072908-2128-02-14-12-36 "['MCL', 'ICP', 'ART', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p072908
+p072908-2128-02-24-15-44 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p072908
+p074438-2190-01-25-21-24 "['ICP', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p074438
+p074438-2190-01-29-23-07 "['ICP', 'ART', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p074438
+p074438-2190-02-02-14-15 "['ICP', 'RESP', 'II', 'P4', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p074438
+p074438-2190-02-05-10-26 "['AVL', 'ICP', 'RESP', 'AVF', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p074438
+p074899-2157-02-24-16-33 "['ICP', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p074899
+p075013-2104-03-23-12-17 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p075013
+p075013-2104-03-23-17-41 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p075013
+p076896-2130-06-13-18-27 "['MCL', 'ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p076896
+p076896-2130-06-20-14-12 "['ICP', 'ART', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p076896
+p076896-2130-06-30-15-09 "['AVL', 'MCL', 'ICP', 'AVR', 'RESP', 'AVF', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p076896
+p077280-2102-07-20-16-48 "['ICP', 'ART', 'AVR', 'RESP', 'II', 'PAP', 'III', 'I', 'ABP', 'PLETH', 'V']" p077280
+p079228-2103-11-14-13-27 "['MCL', 'ICP', 'ART', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'UVP']" p079228
+p079358-2192-12-12-12-26 "['ICP', 'AVR', 'RESP', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V', 'UVP']" p079358
+p079396-2199-11-04-20-44 "['ICP', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p079396
+p079523-2156-03-20-23-35 "['ICP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p079523
+p080847-2190-05-14-16-23 "['ICP', 'ART', 'AVR', 'RESP', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p080847
+p082290-2171-03-28-19-05 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p082290
+p083180-2194-01-27-13-18 "['ICP', 'MCL', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p083180
+p083752-2122-08-03-01-44 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p083752
+p085725-2161-09-09-13-06 "['ICP', 'AVR', 'RESP', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p085725
+p087692-2151-01-22-23-08 "['ICP', 'UAP', 'AVR', 'RESP', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p087692
+p087913-2147-10-18-13-27 "['ICP', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p087913
+p087913-2147-10-19-13-46 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p087913
+p087913-2147-10-22-11-30 "['ICP', 'AVR', 'RESP', 'LAP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p087913
+p088552-2190-07-03-19-11 "['UAP', 'ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p088552
+p089223-2197-08-09-17-00 "['MCL', 'ICP', 'ART', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p089223
+p089579-2182-06-05-00-03 "['ICP', 'II', 'III', 'I', 'ABP', 'PLETH']" p089579
+p089909-2107-05-31-17-25 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'IC2', 'PLETH', 'V']" p089909
+p095512-2134-07-06-18-31 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p095512
+p095708-2139-02-03-23-17 "['ICP', 'AVR', 'RESP', 'II', 'PAP', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p095708
+p095708-2139-02-06-12-12 "['ICP', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p095708
+p097158-2165-08-06-15-29 "['ICP', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p097158
+p097158-2165-08-08-11-19 "['ICP', 'ART', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p097158
+p097158-2165-08-09-10-18 "['AVL', 'ICP', 'ART', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p097158
+p097158-2165-08-16-08-54 "['IC1', 'MCL', 'ICP', 'ART', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'IC2', 'PLETH', 'V']" p097158
+p097660-2156-12-02-23-21 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p097660
+p099366-2197-03-21-02-55 "['ICP', 'AVR', 'RESP', 'II', 'III', 'I', 'CVP', 'ABP', 'PLETH', 'V']" p099366
+p099464-2146-03-30-03-55 "['ICP', 'RESP', 'II', 'III', 'I', 'ABP', 'PLETH', 'V']" p099464
+p099659-2147-12-03-06-55 "['ICP', 'AVR', 'RESP', 'II', 'PAP', 'III', 'I', 'ABP', 'PLETH', 'V']" p099659
