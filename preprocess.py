@@ -1,10 +1,13 @@
 import ast
+from sys import prefix
 
 import wfdb
 import re
 import os
 from IPython.display import display
 import pandas as pd
+
+import pickle
 
 ''' 
 # 数据预处理
@@ -96,13 +99,13 @@ for root, dirs, files in os.walk("pXX", topdown=False):
 
 # print(file_contents)
 
-# file_contents 是一个二维数组，其中每一行是一个文件的内容
-# file_contents = [
-#     ["p004904-2193-06-17-03-04", "p006621-2131-05-24-07-05"], ...
-#     ["p011003-2119-05-17-14-20", "p011901-2184-05-31-09-44"], ...
-#       ...
-#     ["p090990-2133-11-08-10-42"], ...
-# ]
+## file_contents 是一个二维数组，其中每一行是一个文件的内容
+## file_contents = [
+##     ["p004904-2193-06-17-03-04", "p006621-2131-05-24-07-05"], ...
+##     ["p011003-2119-05-17-14-20", "p011901-2184-05-31-09-44"], ...
+##       ...
+##     ["p090990-2133-11-08-10-42"], ...
+## ]
 
 # 转换 file_contents 为 DataFrame
 df = pd.DataFrame(file_contents)
@@ -247,4 +250,101 @@ filtered_records.to_csv("pXX/file_signal_map_icp_abp_pleth_i_ii_iii_resp.dat", s
 '''
 
 # 数据预处理
-# 1. 第二步：对信号进行滤波等处理
+# 1. 第二步：下载筛选信号
+file_signal_map = pd.read_csv("pXX/file_signal_map_icp_abp_pleth.dat", sep=' ', header=None)
+file_signal_map.columns = ['file', 'signals', 'patient']
+file_signal_map["signals"] = file_signal_map["signals"].apply(ast.literal_eval)
+# print(file_signal_map)
+
+for index, row in file_signal_map.iterrows():
+    file = row['file']
+    folder = file[:7]
+    pXX = file[:3]
+    subset_file = f"{pXX}/{folder}"
+    root_path = 'mimic3wdb-matched/1.0/'
+    subset_file_path = "".join([root_path, subset_file])
+    file_record = wfdb.rdheader(file, subset_file_path)
+    # display(file_record.__dict__)
+    segName = file_record.seg_name
+    fs = file_record.fs
+
+    layout_pattern = r'^\d{7}_layout$'
+    layout = list(filter(lambda file: re.match(layout_pattern, file), segName))
+    # print(layout)
+
+    # 根据 layout 文件名 "XXXXXXX_layout", 在segName中找到对应的信号 "XXXXXXX_NNNN"
+    for layout_file in layout:
+        segName_prefix = layout_file.replace("_layout", "")
+        signals = [
+            seg for seg in segName
+            if seg.startswith(segName_prefix) and seg != f"{segName_prefix}_layout"
+        ]
+        for signal in signals:
+            try:
+                signal_record = wfdb.rdheader(signal, subset_file_path)
+                channel_list = ["ICP", "ABP", "PLETH"]
+                sig_list = signal_record.sig_name
+
+                # sig_list 是否包含了 channel_list 中所有的信号
+                flag = set(channel_list).issubset(sig_list)
+                print(flag)
+                if flag:
+                    sig, fields = wfdb.rdsamp(record_name=signal, pn_dir=subset_file_path, channel_names=channel_list)
+                    path =  f"pXX/{subset_file}"
+                    if not os.path.exists(path):
+                        os.makedirs(path)
+                    file_path = os.path.join(path, f"{signal}.dat")
+                    with open(file_path, 'wb') as f:
+                        pickle.dump({'fields': fields, 'sig': sig}, f)
+                    print(f"保存{file_path}")
+                else:
+                    print(f"{signal}:{sig_list}")
+            except Exception as e:
+                print(f"Error processing signal {signal}: {e}")
+
+print("=================================  save finished ===============================")
+
+# # 测试
+# file = file_signal_map['file'][0]
+# # print(file)
+# folder = file[:7]
+# pXX = file[:3]
+# subset_file = f"{pXX}/{folder}"
+# root_path = 'mimic3wdb-matched/1.0/'
+# subset_file_path = "".join([root_path, subset_file])
+# file_record = wfdb.rdheader(file, subset_file_path)
+# # display(file_record.__dict__)
+# segName = file_record.seg_name
+# fs = file_record.fs
+# # print(fs)
+#
+# layout_pattern = r'^\d{7}_layout$'
+# layout = list(filter(lambda file: re.match(layout_pattern, file), segName))
+# # print(layout)
+#
+# # layout_record = wfdb.rdheader(layout[0], subset_file_path)
+# # display(layout_record.__dict__)
+# # 根据 layout 文件名 "XXXXXXX_layout", 在segName中找到对应的信号 "XXXXXXX_NNNN"
+# segName_prefix = layout[0].replace("_layout", "")
+# signals = [
+#     seg for seg in segName
+#     if seg.startswith(segName_prefix) and seg != f"{segName_prefix}_layout"
+# ]
+# # print(signals)
+# # signal_path =  f"{subset_file_path}/{signals[0]}"
+# channel_list = ["ICP", "ABP", "PLETH", "I", "II", "III", "RESP"]
+# sig, fields = wfdb.rdsamp(record_name=signals[0], pn_dir=subset_file_path, channel_names=channel_list)
+# print(sig)
+# print(fields)
+# # fields['sig_name'] 是否包含了 channel_list 中所有的信号
+# sig_list = fields['sig_name']
+# flag = set(channel_list).issubset(sig_list)
+# print(flag)
+# if flag:
+#     path =  f"pXX/{subset_file}"
+#     if not os.path.exists(path):
+#         os.makedirs(path)
+#     file_path = os.path.join(path, f"{signals[0]}.dat")
+#     with open(file_path, 'wb') as f:
+#         pickle.dump({'fields': fields, 'sig': sig}, f)
+#     print(f"保存{file_path}")
