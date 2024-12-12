@@ -1,21 +1,23 @@
-import ast
 from sys import prefix
-
+import scipy.signal as signal
+import ast
 import wfdb
 import re
 import os
 from IPython.display import display
 import pandas as pd
-
 import pickle
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
 
-''' 
+
 # 数据预处理
 # 1. 第一步：选出含有ICP、ABP信号，且fs=125Hz的记录
 #   - 读取pXXNNNN-YYYY-MM-DD-hh-mm.hea fs ，判断fs=125Hz?
 #   - 读取 seg_name 对应的xxxxxxx_layout.hea，根据 sig_name 判断是否含有ABP和ICP？
 #   - 记录下所有含有ABP和ICP且，fs=125Hz为的pXXNNNN-YYYY-MM-DD-hh-mm。
-
+''' 
 # 获取根目录下所有记录列表
 root_file_list = wfdb.get_record_list('mimic3wdb-matched', records="all")
 root_path = 'mimic3wdb-matched/1.0/'
@@ -84,8 +86,9 @@ for subset_file_name in root_file_list:
             
  '''
 
-'''
+
 # 验证第一步筛选结果
+'''
 # 测试上面的筛选结果, 读取pXX文件夹下的txt文件, 把文件内容存储在panda数组中
 file_contents = []
 for root, dirs, files in os.walk("pXX", topdown=False):
@@ -150,8 +153,9 @@ for layout_file in test_matched_layout:
         print(f"无法读取 layout 文件 {layout_file}：{e}")
 '''
 
-'''
+
 # 统计病人个数
+'''
 df_loaded = pd.read_csv("pXX/file_contents.dat", sep=' ', header=None, engine='python')
 # print(df_loaded)
 # df_loaded 中每一个元素是一个文件名，格式为 pXXNNNN-YYYY-MM-DD-hh-mm, 其中 XXNNNN 为病人编号
@@ -211,8 +215,9 @@ df_all_signals.to_csv("pXX/all_signals.dat", sep=' ', header=False, index=False)
 print("file_signal_map 和 all_signals 已保存为 .dat 文件")
 '''
 
-'''
+
 # 根据 file_signal_map 统计包含ICP ABP PLETH 信号的记录 和 病人个数
+'''
 file_signal_map = pd.read_csv("pXX/file_signal_map.dat", sep=' ', header=None, names=["file", "signals"])
 file_signal_map["signals"] = file_signal_map["signals"].str.split(',')
 
@@ -233,8 +238,9 @@ filtered_records.to_csv("pXX/file_signal_map_icp_abp_pleth.dat", sep=' ', index=
 file_signal_map.to_csv("pXX/file_signal_map.dat", sep=' ', index=False, header=False)
 '''
 
-'''
+
 # 根据 file_signal_map 统计包含ICP ABP PLETH I II III RESP信号的记录 和 病人个数
+'''
 file_signal_map = pd.read_csv("pXX/file_signal_map.dat", sep=' ', header=None, names=["file", "signals"])
 file_signal_map["signals"] = file_signal_map["signals"].apply(ast.literal_eval)
 target_signals = {'ICP', 'ABP', 'PLETH', 'I', 'II', 'III', 'RESP'}
@@ -249,14 +255,17 @@ print(f"包含目标信号的病人数：{unique_patients}")
 filtered_records.to_csv("pXX/file_signal_map_icp_abp_pleth_i_ii_iii_resp.dat", sep=' ', index=False, header=False)
 '''
 
-# 数据预处理
+
 # 1. 第二步：下载筛选信号
-file_signal_map = pd.read_csv("pXX/file_signal_map_icp_abp_pleth.dat", sep=' ', header=None)
+'''
+file_signal_map = pd.read_csv(
+    "pXX/file_signal_map_icp_abp_pleth.dat", sep=' ', header=None)
 file_signal_map.columns = ['file', 'signals', 'patient']
 file_signal_map["signals"] = file_signal_map["signals"].apply(ast.literal_eval)
 # print(file_signal_map)
 
-for index, row in file_signal_map.iterrows():
+start_row = 343
+for index, row in file_signal_map.iloc[start_row:].iterrows():
     file = row['file']
     folder = file[:7]
     pXX = file[:3]
@@ -289,8 +298,9 @@ for index, row in file_signal_map.iterrows():
                 flag = set(channel_list).issubset(sig_list)
                 print(flag)
                 if flag:
-                    sig, fields = wfdb.rdsamp(record_name=signal, pn_dir=subset_file_path, channel_names=channel_list)
-                    path =  f"pXX/{subset_file}"
+                    sig, fields = wfdb.rdsamp(
+                        record_name=signal, pn_dir=subset_file_path, channel_names=channel_list)
+                    path = f"pXX/{subset_file}"
                     if not os.path.exists(path):
                         os.makedirs(path)
                     file_path = os.path.join(path, f"{signal}.dat")
@@ -303,8 +313,11 @@ for index, row in file_signal_map.iterrows():
                 print(f"Error processing signal {signal}: {e}")
 
 print("=================================  save finished ===============================")
+'''
 
-# # 测试
+
+# # 测试上一步处理结果
+'''
 # file = file_signal_map['file'][0]
 # # print(file)
 # folder = file[:7]
@@ -348,3 +361,229 @@ print("=================================  save finished ========================
 #     with open(file_path, 'wb') as f:
 #         pickle.dump({'fields': fields, 'sig': sig}, f)
 #     print(f"保存{file_path}")
+
+'''
+
+
+# 3. 第三步：波形读取与预处理
+def plot_signals(signals, channel):
+    """
+    参数：
+        signals (numpy.ndarray): 信号数组，形状为 (样本数, 通道数)。
+        channel (list): 每个通道的名称列表。
+    """
+    if signals.shape[1] != len(channel):
+        raise ValueError("signals 通道数和 channel 名称数量不匹配！")
+
+    # 创建一个 Nx1 的子图布局
+    fig, axes = plt.subplots(signals.shape[1], 1, figsize=(8, 12))
+
+    # 遍历每个通道并绘制到对应的子图
+    for i in range(signals.shape[1]):  # 遍历通道
+        ax = axes[i]  # 获取第 i 个子图
+        ax.plot(signals[:, i], label=f"{channel[i]}")
+        ax.set_title(f"{channel[i]}")
+        ax.set_xlabel("Sample")
+        ax.set_ylabel("Amplitude")
+        ax.legend()
+        ax.grid(True)
+
+    # 调整子图布局以避免重叠
+    plt.tight_layout()
+    # 显示图像
+    plt.show()
+
+
+# 3.1 统计时间大于 5min 的信号文件
+'''
+root_path = "pXX"
+pattern = re.compile(r"^p0[0-9]$")
+min_length = 125 * 60 * 5
+res_datLarge5min = []
+patient_set = set()
+
+for dirpath, dirnames, filenames in os.walk(root_path):
+    for dirname in dirnames:
+        # 继续遍历子目录
+        for sub_dirpath, sub_dirnames, sub_filenames in os.walk(os.path.join(dirpath, dirname)):
+            for sub_dirname in sub_dirnames:
+                # 继续遍历子目录
+                # 根据 sub_dirname 统计所有包含 icp abp pleth ii 的病人数目
+                patient_set.add(sub_dirname)
+                for path, dirs, files in os.walk(os.path.join(sub_dirpath, sub_dirname)):
+                    for file in files:
+                        file_path = os.path.join(path, file)
+                        try:
+                            with open(file_path, "rb") as f:
+                                data = pickle.load(f)
+                            fields = data.get("fields", {})
+                            signals = data.get("sig", None)
+                            # channel = fields.get('sig_name', [])
+                            # plot_signals(signals, channel)
+                            # 1) len(signals) >  min_length
+                            if signals is not None and len(signals) >= min_length:
+                                res_datLarge5min.append(
+                                    [file_path, sub_dirname, file])
+                        except Exception as e:
+                            print(f"Error loading file {file_path}: {e}")
+
+# 使用集合去重 res_datLarge5min 中的 sub_dirname
+datLarge5min_patient_set = set(
+    sub_dirname for _, sub_dirname, _ in res_datLarge5min)
+print(f" 包含 ICP , ABP, PLETH, II 的病人总数: {len(patient_set)}")
+print(
+    f" len(signals) >= min_length 的病人总数: {len(datLarge5min_patient_set)}")
+
+# 写入CSV文件
+csv_datLarge5min = os.path.join("pXX", "datLarge5min.csv")
+with open(csv_datLarge5min, mode="a", newline="", encoding="utf-8") as csv_file:
+    csv_writer = csv.writer(csv_file)
+    if csv_file.tell() == 0:
+        csv_writer.writerow(["file_path", "sub_dirname", "file"])  # 写入表头
+    csv_writer.writerows(res_datLarge5min)
+print(
+    f" ========================= save finished: {csv_datLarge5min} !!! ========================")
+'''
+
+
+# 3.2 no NaN values present in any signal
+'''
+# 读取 datLarge5min.csv 文件
+datLarge5min = pd.read_csv("pXX/datLarge5min.csv")
+# 根据 datLarge5min 中的文件路径读取数据
+res_noNaN = []
+for index, row in datLarge5min.iterrows():
+    try:
+        with open(row["file_path"], "rb") as f:
+            data = pickle.load(f)
+        signals = data.get("sig", None)
+
+        if signals is not None:
+            valid_indices = ~np.isnan(signals).any(axis=1)  # 一行中无 NaN 返回 True
+            # valid_signals = np.where(valid_indices)[0]  # 保留有效行
+            segments = []
+            start_idx = None
+            for i, valid in enumerate(valid_indices):
+                if valid:
+                    # 如果当前行有效，且上一行无效，则开始新的段
+                    if start_idx is None:
+                        start_idx = i
+                else:  # 如果当前行无效
+                    if start_idx is not None:  # 且上一行有效，则结束当前段
+                        segments.append((start_idx, i))  # 记录当前段的开始和结束索引
+                        start_idx = None
+
+            # 检测最后一段
+            if start_idx is not None:
+                segments.append((start_idx, len(valid_indices) - 1))
+
+            # 检查每个段的长度是否大于 5min，如果是则保存
+            for start, end in segments:
+                if end - start >= min_length:
+                    print(
+                        f"Valid segment: {row['file_path']} [{start}, {end}]")
+                    res_noNaN.append(
+                        [row['file_path'], row['sub_dirname'], row['file'], start, end])
+    except Exception as e:
+        print(f"Error loading file {row['file_path']}: {e}")
+
+# 使用集合 set 去重 res_noNaN 中的 sub_dirname
+noNaN_patient_set = set(
+    sub_dirname for _, sub_dirname, _, _, _ in res_noNaN)
+print(
+    f"No NaN values present in any signal的病人总数: {len(noNaN_patient_set)}")
+
+# 写入CSV文件
+csv_noNaN = os.path.join("pXX", "noNaN.csv")
+with open(csv_noNaN, mode="a", newline="", encoding="utf-8") as csv_file:
+    csv_writer = csv.writer(csv_file)
+    if csv_file.tell() == 0:
+        csv_writer.writerow(
+            ["file_path", "sub_dirname", "file", "start", "end"])  # 写入表头
+    csv_writer.writerows(res_noNaN)
+
+print("============================================= NaN finished =====================================")
+'''
+
+
+# 将signal[start: end]划分为5min的片段，每个片段之间有30%的重叠
+def splitSig(signal, fs=125, segLenth=60*5, overlap=0.3):
+    """
+    将信号划分为带重叠的片段
+
+    参数：
+        signal (ndarray): 输入的信号数组。
+        fs (int): 采样率（Hz）。
+        segment_length (int): 每个片段的长度（秒）。
+        overlap (float): 重叠百分比（0 到 1）。
+
+    返回：
+        splitSeg (list of ndarray): 符合条件的信号片段。
+    """
+    samples = fs * segLenth
+    overlap = int(samples * overlap)
+    splitSeg = []
+    for i in range(0, len(signal), samples - overlap):
+        if i + samples > len(signal):
+            break
+        splitSeg.append(signal[i: i + samples-1])
+
+    # 过滤掉小于5min的片段
+    splitSeg = [seg for seg in splitSeg if len(seg) < samples]
+    return splitSeg
+
+
+# FIR滤波器
+def design_fir_filter(fs=125, f_pass=5, f_stop=7, stop_attenuation=40):
+    """
+    设计FIR滤波器
+    :param fs: 采样频率
+    :param f_pass: 通带频率
+    :param f_stop: 阻带频率
+    :param stop_attenuation: 阻带衰减
+    :return: FIR滤波器系数
+    """
+    nyquist = fs / 2  # 奈奎斯特频率
+    width = f_stop - f_pass
+    numtaps, beta = signal.kaiserord(stop_attenuation, width / nyquist)
+    fir_coeff = signal.remez(
+        numtaps, [0, f_pass, f_stop, nyquist], [1, 0], Hz=fs)
+    return fir_coeff
+
+
+# 3.3 对信号进行分段、low-pass滤波等操作
+# 滤波器设计
+fir_coeff = design_fir_filter(fs=125, f_pass=5, f_stop=7, stop_attenuation=40)
+# 读取 noNaN.csv 文件
+noNaN = pd.read_csv("pXX/noNaN.csv")
+# 根据 noNaN 中的文件路径读取数据
+for index, row in noNaN.iterrows():
+    try:
+        with open(row["file_path"], "rb") as f:
+            data = pickle.load(f)
+        signals = data.get("sig", None)
+        fields = data.get("fields", None)
+        # if signals is None or fields is None:
+        #     print(f"Invalid data in file {row['file_path']}")
+        #     continue
+        fs = fields.get('fs', None)
+        # if fs is None or fs != 125:
+        #     print(f"Invalid fs in file {row['file_path']}")
+        #     continue
+        channel = fields.get('sig_name', [])
+        start = row['start']
+        end = row['end']
+        # 将signal[start: end]划分为5min的片段，每个片段之间有30%的重叠
+        segments = splitSig(signal=signals[start:end], fs=fs,
+                            segLenth=5 * 60, overlap=0.3)
+        # 对每个片段进行滤波
+        filtered_segments = []
+        for seg in segments:
+            filtered_icp = signal.lfilter(fir_coeff, 1, seg[:, 0], axis=0)
+            filtered_seg = seg.copy()
+            filtered_seg[:, 0] = filtered_icp
+            filtered_segments.append(filtered_seg)
+            plot_signals(signals=filtered_seg[1250*7:1250*8], channel=channel)
+
+    except Exception as e:
+        print(f"Error loading file {row['file_path']}: {e}")
