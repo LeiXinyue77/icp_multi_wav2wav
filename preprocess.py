@@ -555,7 +555,7 @@ def design_fir_filter(fs=125, f_pass=5, f_stop=7, stop_attenuation=40):
 # 滤波器设计
 fir_coeff = design_fir_filter(fs=125, f_pass=5, f_stop=7, stop_attenuation=40)
 # 读取 noNaN.csv 文件
-noNaN = pd.read_csv("pXX/noNaN.csv")
+noNaN = pd.read_csv("result/pre/noNaN.csv")
 # 根据 noNaN 中的文件路径读取数据
 for index, row in noNaN.iterrows():
     try:
