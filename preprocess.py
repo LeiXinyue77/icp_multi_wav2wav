@@ -561,7 +561,9 @@ for index, row in noNaN.iterrows():
     try:
         with open(row["file_path"], "rb") as f:
             data = pickle.load(f)
-        signals = data.get("sig", None)
+        start = row['start']
+        end = row['end']
+        signals = data.get("sig", None)[start:end]
         fields = data.get("fields", None)
         # if signals is None or fields is None:
         #     print(f"Invalid data in file {row['file_path']}")
@@ -571,19 +573,44 @@ for index, row in noNaN.iterrows():
         #     print(f"Invalid fs in file {row['file_path']}")
         #     continue
         channel = fields.get('sig_name', [])
-        start = row['start']
-        end = row['end']
-        # 将signal[start: end]划分为5min的片段，每个片段之间有30%的重叠
-        segments = splitSig(signal=signals[start:end], fs=fs,
-                            segLenth=5 * 60, overlap=0.3)
-        # 对每个片段进行滤波
-        filtered_segments = []
-        for seg in segments:
-            filtered_icp = signal.lfilter(fir_coeff, 1, seg[:, 0], axis=0)
-            filtered_seg = seg.copy()
-            filtered_seg[:, 0] = filtered_icp
-            filtered_segments.append(filtered_seg)
-            plot_signals(signals=filtered_seg[1250*7:1250*8], channel=channel)
+
+        # 1) low-pass 滤波
+        filtered_icp = signal.lfilter(fir_coeff, 1, signals[:, 0], axis=0)
+        filtered_sig = signals.copy()
+        filtered_sig[:, 0] = filtered_icp
+        # plot_signals(signals=filtered_sig, channel=channel)
+        # print("滤波后绘图")
+
+        # 2）10s一段检测波形是否符合要求, 累计满5min的时长则保存
+        # 排除 ICP < -10 mmHg or >200 mmHg 的片段
+        # 排除周期< 0.56 s和> 1.04 s的ICP波形
+        seg_len = 10 * fs  # 每段10秒
+        valid_segments = []
+        total_time = 0  # 用于累计总时间
+
+        for i in range(0, len(filtered_icp), seg_len):
+            segment = filtered_icp[i:i + seg_len]
+            plot_signals(signals=filtered_sig[i:i + seg_len], channel=channel)
+
+            # 排除 ICP 值范围不符合的片段
+            if (segment.min() < -10) or (segment.max() > 200):
+                continue
+
+            # 检测波形周期是否符合要求,计算零交点（过零点）间的时间间隔，用于周期计算
+            zero_crossings = np.where(np.diff(np.sign(segment)))[0]
+            periods = np.diff(zero_crossings) / fs  # 单位：秒
+            if len(periods) == 0 or periods.min() < 0.56 or periods.max() > 1.04:
+                continue
+
+            # 累计有效时长
+            valid_segments.append(segment)
+            total_time += len(segment) / fs  # 累计时间（秒）
+
+            # 如果累计时间超过5分钟（300秒），保存片段
+            if total_time >= 300:
+                # filtered_segments.append(np.concatenate(valid_segments))
+                valid_segments = []  # 重置有效片段
+                total_time = 0
 
     except Exception as e:
         print(f"Error loading file {row['file_path']}: {e}")
