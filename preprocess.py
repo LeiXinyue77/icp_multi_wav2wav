@@ -1,5 +1,5 @@
 from sys import prefix
-import scipy.signal as signal
+from scipy.signal import butter, filtfilt
 import ast
 import wfdb
 import re
@@ -259,12 +259,13 @@ filtered_records.to_csv("pXX/file_signal_map_icp_abp_pleth_i_ii_iii_resp.dat", s
 # 1. 第二步：下载筛选信号
 '''
 file_signal_map = pd.read_csv(
-    "pXX/file_signal_map_icp_abp_pleth.dat", sep=' ', header=None)
+    "result/pre/file_signal_map_icp_abp_pleth.dat", sep=' ', header=None)
 file_signal_map.columns = ['file', 'signals', 'patient']
 file_signal_map["signals"] = file_signal_map["signals"].apply(ast.literal_eval)
 # print(file_signal_map)
 
-start_row = 343
+start_row = 0
+end_row = 22
 for index, row in file_signal_map.iloc[start_row:].iterrows():
     file = row['file']
     folder = file[:7]
@@ -291,7 +292,7 @@ for index, row in file_signal_map.iloc[start_row:].iterrows():
         for signal in signals:
             try:
                 signal_record = wfdb.rdheader(signal, subset_file_path)
-                channel_list = ["ICP", "ABP", "PLETH"]
+                channel_list = ["ICP", "ABP", "PLETH","II"]
                 sig_list = signal_record.sig_name
 
                 # sig_list 是否包含了 channel_list 中所有的信号
@@ -424,6 +425,7 @@ for dirpath, dirnames, filenames in os.walk(root_path):
                             if signals is not None and len(signals) >= min_length:
                                 res_datLarge5min.append(
                                     [file_path, sub_dirname, file])
+                                print(f"{file_path} done")
                         except Exception as e:
                             print(f"Error loading file {file_path}: {e}")
 
@@ -435,7 +437,7 @@ print(
     f" len(signals) >= min_length 的病人总数: {len(datLarge5min_patient_set)}")
 
 # 写入CSV文件
-csv_datLarge5min = os.path.join("pXX", "datLarge5min.csv")
+csv_datLarge5min = os.path.join("result/pre", "datLarge5min.csv")
 with open(csv_datLarge5min, mode="a", newline="", encoding="utf-8") as csv_file:
     csv_writer = csv.writer(csv_file)
     if csv_file.tell() == 0:
@@ -445,11 +447,11 @@ print(
     f" ========================= save finished: {csv_datLarge5min} !!! ========================")
 '''
 
-
 # 3.2 no NaN values present in any signal
 '''
 # 读取 datLarge5min.csv 文件
-datLarge5min = pd.read_csv("pXX/datLarge5min.csv")
+datLarge5min = pd.read_csv("result/pre/datLarge5min.csv")
+min_length = 125 * 60 * 5
 # 根据 datLarge5min 中的文件路径读取数据
 res_noNaN = []
 for index, row in datLarge5min.iterrows():
@@ -494,7 +496,7 @@ print(
     f"No NaN values present in any signal的病人总数: {len(noNaN_patient_set)}")
 
 # 写入CSV文件
-csv_noNaN = os.path.join("pXX", "noNaN.csv")
+csv_noNaN = os.path.join("result/pre", "noNaN.csv")
 with open(csv_noNaN, mode="a", newline="", encoding="utf-8") as csv_file:
     csv_writer = csv.writer(csv_file)
     if csv_file.tell() == 0:
@@ -533,27 +535,14 @@ def splitSig(signal, fs=125, segLenth=60*5, overlap=0.3):
     return splitSeg
 
 
-# FIR滤波器
-def design_fir_filter(fs=125, f_pass=5, f_stop=7, stop_attenuation=40):
-    """
-    设计FIR滤波器
-    :param fs: 采样频率
-    :param f_pass: 通带频率
-    :param f_stop: 阻带频率
-    :param stop_attenuation: 阻带衰减
-    :return: FIR滤波器系数
-    """
-    nyquist = fs / 2  # 奈奎斯特频率
-    width = f_stop - f_pass
-    numtaps, beta = signal.kaiserord(stop_attenuation, width / nyquist)
-    fir_coeff = signal.remez(
-        numtaps, [0, f_pass, f_stop, nyquist], [1, 0], Hz=fs)
-    return fir_coeff
-
-
 # 3.3 对信号进行分段、low-pass滤波等操作
 # 滤波器设计
-fir_coeff = design_fir_filter(fs=125, f_pass=5, f_stop=7, stop_attenuation=40)
+order = 3
+cutoff_freq = 5
+sampling_freq = 125
+normalized_cutoff_freq = cutoff_freq / (sampling_freq / 2)
+(b, a) = butter(order, normalized_cutoff_freq, btype='low', analog=False)
+print(a, b)
 # 读取 noNaN.csv 文件
 noNaN = pd.read_csv("result/pre/noNaN.csv")
 # 根据 noNaN 中的文件路径读取数据
@@ -575,7 +564,7 @@ for index, row in noNaN.iterrows():
         channel = fields.get('sig_name', [])
 
         # 1) low-pass 滤波
-        filtered_icp = signal.lfilter(fir_coeff, 1, signals[:, 0], axis=0)
+        filtered_icp = filtfilt(b, a, signals[:,0])
         filtered_sig = signals.copy()
         filtered_sig[:, 0] = filtered_icp
         # plot_signals(signals=filtered_sig, channel=channel)
@@ -589,28 +578,30 @@ for index, row in noNaN.iterrows():
         total_time = 0  # 用于累计总时间
 
         for i in range(0, len(filtered_icp), seg_len):
-            segment = filtered_icp[i:i + seg_len]
+            # segment = filtered_icp[i:i + seg_len]
             plot_signals(signals=filtered_sig[i:i + seg_len], channel=channel)
+            plot_signals(signals=signals[i:i + seg_len,0], channel=channel)
+            print("低通滤波")
 
-            # 排除 ICP 值范围不符合的片段
-            if (segment.min() < -10) or (segment.max() > 200):
-                continue
-
-            # 检测波形周期是否符合要求,计算零交点（过零点）间的时间间隔，用于周期计算
-            zero_crossings = np.where(np.diff(np.sign(segment)))[0]
-            periods = np.diff(zero_crossings) / fs  # 单位：秒
-            if len(periods) == 0 or periods.min() < 0.56 or periods.max() > 1.04:
-                continue
-
-            # 累计有效时长
-            valid_segments.append(segment)
-            total_time += len(segment) / fs  # 累计时间（秒）
-
-            # 如果累计时间超过5分钟（300秒），保存片段
-            if total_time >= 300:
-                # filtered_segments.append(np.concatenate(valid_segments))
-                valid_segments = []  # 重置有效片段
-                total_time = 0
+            # # 排除 ICP 值范围不符合的片段
+            # if (segment.min() < -10) or (segment.max() > 200):
+            #     continue
+            #
+            # # 检测波形周期是否符合要求,计算零交点（过零点）间的时间间隔，用于周期计算
+            # zero_crossings = np.where(np.diff(np.sign(segment)))[0]
+            # periods = np.diff(zero_crossings) / fs  # 单位：秒
+            # if len(periods) == 0 or periods.min() < 0.56 or periods.max() > 1.04:
+            #     continue
+            #
+            # # 累计有效时长
+            # valid_segments.append(segment)
+            # total_time += len(segment) / fs  # 累计时间（秒）
+            #
+            # # 如果累计时间超过5分钟（300秒），保存片段
+            # if total_time >= 300:
+            #     # filtered_segments.append(np.concatenate(valid_segments))
+            #     valid_segments = []  # 重置有效片段
+            #     total_time = 0
 
     except Exception as e:
         print(f"Error loading file {row['file_path']}: {e}")
