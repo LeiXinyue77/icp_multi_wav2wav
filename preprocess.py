@@ -723,7 +723,7 @@ for index, row in noNaN_partial.iterrows():
                 print("ICP ABP 异常值 ")
                 patient = row['sub_dirname']
                 file = row['file']
-                save_path = f"svm_miniset/0/{patient[:4]}/{patient}"
+                save_path = f"svm_miniset/0/{patient[:3]}/{patient}"
                 save_signals(
                     sigs=filtered_sig[i:i + seg_len], chl=channel,
                     title=f"{num}-{file.split('.')[0]}-{i}-{i + seg_len}",
@@ -739,7 +739,7 @@ for index, row in noNaN_partial.iterrows():
                 print(f"未找到周期性峰值 icp_period: {icp_period}, abp_period: {abp_period}")
                 patient = row['sub_dirname']
                 file = row['file']
-                save_path = f"svm_miniset/0/{patient[:4]}/{patient}"
+                save_path = f"svm_miniset/0/{patient[:3]}/{patient}"
                 save_signals(
                     sigs=filtered_sig[i:i + seg_len], chl=channel,
                     title=f"{num}-{file.split('.')[0]}-{i}-{i + seg_len}",
@@ -756,7 +756,7 @@ for index, row in noNaN_partial.iterrows():
                 # 需要同时保存图片和数据，命名(XXXXX_NNNN_start_end) 保持一致（图片用于人工分类，数据用于训练
                 patient = row['sub_dirname']
                 file = row['file']
-                save_path = f"svm_miniset/0/{patient[:4]}/{patient}"
+                save_path = f"svm_miniset/0/{patient[:3]}/{patient}"
                 save_signals(
                     sigs=filtered_sig[i:i + seg_len], chl=channel,
                     title=f"{num}-{file.split('.')[0]}-{i}-{i + seg_len}",
@@ -768,7 +768,7 @@ for index, row in noNaN_partial.iterrows():
             # 需要同时保存图片和数据，命名保持一致（图片用于人工分类，数据用于训练
             patient = row['sub_dirname']
             file = row['file']
-            save_path = f"svm_miniset/1/{patient[:4]}/{patient}"
+            save_path = f"svm_miniset/1/{patient[:3]}/{patient}"
             save_signals(
                 sigs=filtered_sig[i:i + seg_len], chl=channel,
                 title=f"{num}-{file.split('.')[0]}-{i}-{i + seg_len}",
