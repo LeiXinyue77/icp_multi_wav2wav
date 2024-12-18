@@ -1,15 +1,16 @@
 from sys import prefix
+from IPython.display import display
 from scipy.signal import butter, filtfilt
 import ast
 import wfdb
 import re
 import os
-from IPython.display import display
 import pandas as pd
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
+import pywt
 
 
 # 数据预处理
@@ -367,7 +368,7 @@ print("=================================  save finished ========================
 
 
 # 3. 第三步：波形读取与预处理
-def plot_signals(sigs, chl, title="signals"):
+def plot_signals(sigs, chl, title=" "):
     """
     参数：
         signals (numpy.ndarray): 信号数组，形状为 (样本数, 通道数)。
@@ -395,6 +396,54 @@ def plot_signals(sigs, chl, title="signals"):
     plt.tight_layout()
     # 显示图像
     plt.show()
+
+
+
+def save_signals(sigs, chl, title=" ", save_path=None):
+    """
+    参数：
+        signals (numpy.ndarray): 信号数组，形状为 (样本数, 通道数)。
+        channel (list): 每个通道的名称列表。
+        title (string): 标题
+        save_path (string): 保存图像的路径
+    """
+    if sigs.shape[1] != len(chl):
+        raise ValueError("signals 通道数和 channel 名称数量不匹配！")
+
+    # 创建一个 Nx1 的子图布局
+    fig, axes = plt.subplots(sigs.shape[1], 1, figsize=(8, 12))
+    fig.suptitle(title, fontsize=16)
+
+    # 遍历每个通道并绘制到对应的子图
+    for n in range(sigs.shape[1]):  # 遍历通道
+        ax = axes[n]  # 获取第 n 个子图
+        ax.plot(sigs[:, n], label=f"{chl[n]}")
+        ax.set_title(f"{chl[n]}")
+        ax.set_xlabel("Sample")
+        ax.set_ylabel("Amplitude")
+        ax.legend()
+        ax.grid(True)
+
+    # 调整子图布局以避免重叠
+    plt.tight_layout()
+
+    # 保存图像到指定路径
+    if save_path:
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)  # 创建文件夹（如果不存在）
+        fig_name = f"{title}.png"  # 图像文件名
+        path_fig = os.path.join(save_path, "png")
+        plt.savefig(os.path.join(path_fig, fig_name))  # 保存文件
+        print(f"fig saved: {path_fig}/{fig_name}")
+
+        # 保存信号数据
+        data_name = f"{title}.npy"
+        path_data = os.path.join(save_path, "npy")
+        data_file = os.path.join(path_data, f"{title}.npy")  # 保存为 .npy 格式
+        np.save(data_file, sigs)
+        print(f"data saved: {path_data}/{data_name}")
+
+    plt.close()  # 关闭图像，以避免显示时占用内存
 
 
 # 3.1 统计时间大于 5min 的信号文件
@@ -537,7 +586,77 @@ def splitSig(signal, sample_freq=125, segLenth=60*5, overlap=0.3):
     return splitSeg
 
 
+def period_dwt(signal, fs, wavelet='morl', scales_range=(1, 128)):
+    """
+    使用小波变换来计算信号的主导周期
+
+    参数:
+        signal: 输入的时间序列数据
+        fs: 采样频率 (Hz)
+        wavelet: 小波基类型 (默认为 'morl')
+        scales_range: 小波尺度范围 (默认为从1到128)
+
+    返回:
+        dominant_period: 主导周期（秒）
+    """
+    # 生成小波尺度范围
+    scales = np.arange(scales_range[0], scales_range[1])
+
+    # 进行小波变换
+    coefficients, frequencies = pywt.cwt(signal, scales, wavelet, sampling_period=1/fs)
+
+    # 找到主频率对应的周期
+    dominant_scale = np.argmax(np.abs(coefficients), axis=0).mean()  # 平均尺度
+    dominant_frequency = frequencies[int(dominant_scale)]  # 主频率
+    dominant_period = 1 / dominant_frequency  # 主周期
+
+    return dominant_period
+
+
+def period_autocorrelation(sig, freq):
+    """
+        利用自相关函数计算ICP信号的主周期
+
+        参数：
+        icp: 输入的ICP信号 (numpy.ndarray)
+        fs: 采样频率 (Hz)
+
+        返回：
+        period: 信号的主周期 (秒)
+        """
+    # 1. 计算自相关
+    sig = sig - np.mean(sig)  # 去均值
+    autocorr = np.correlate(sig, sig, mode='full')
+    autocorr = autocorr[len(autocorr) // 2:]  # 保留非负延迟部分
+
+    # 2. 寻找主周期
+    # 找到自相关的第一个局部最大值（跳过0延迟点）
+    peaks = np.where((autocorr[1:-1] > autocorr[:-2]) & (autocorr[1:-1] > autocorr[2:]))[0] + 1
+    if len(peaks) == 0:
+        # print("未找到周期性峰值")
+        return None
+
+    # 第一个峰值对应的延迟时间
+    dominant_lag = peaks[0]
+    period = dominant_lag / freq  # 将延迟转换为时间
+
+    # 可视化自相关函数
+    # plt.figure(figsize=(10, 5))
+    # plt.plot(autocorr, label="Autocorrelation")
+    # plt.axvline(dominant_lag, color='r', linestyle='--', label=f"Dominant Lag: {dominant_lag} samples")
+    # plt.title("Autocorrelation Function")
+    # plt.xlabel("Lag (samples)")
+    # plt.ylabel("Autocorrelation")
+    # plt.legend()
+    # plt.grid()
+    # plt.show()
+
+    return period
+
+
 # 3.3 对信号进行分段、low-pass滤波等操作
+# 结果暂存
+res_normal = []
 # 滤波器设计
 order = 3
 cutoff_freq = 5
@@ -546,7 +665,9 @@ normalized_cutoff_freq = cutoff_freq / (sampling_freq / 2)
 (b, a) = butter(order, normalized_cutoff_freq, btype='low', analog=False)
 print(a, b)
 # 读取 noNaN.csv 文件
-noNaN = pd.read_csv("result/pre/noNaN_p00_p04.csv")
+noNaN = pd.read_csv("result/pre/noNaN.csv")
+noNaN_partial = noNaN.iloc[0:2]
+num = 0  # 记录处理过的文件个数
 # 根据 noNaN 中的文件路径读取数据
 for index, row in noNaN.iterrows():
     try:
@@ -569,40 +690,88 @@ for index, row in noNaN.iterrows():
         filtered_icp = filtfilt(b, a, signals[:, 0])
         filtered_sig = signals.copy()
         filtered_sig[:, 0] = filtered_icp
-        # plot_signals(signals=filtered_sig, channel=channel)
-        # print("滤波后绘图")
+        file = row["file_path"]
+        # plot_signals(sigs=filtered_sig, chl=channel, title=f"filtered-{file}")
+        # plot_signals(sigs=signals, chl=channel, title=f"raw-{file}")
 
-        # 2）10s一段检测波形是否符合要求, 累计满5min的时长则保存
-        # 排除 ICP < -10 mmHg or >200 mmHg 的片段
-        # 排除周期< 0.56 s和> 1.04 s的ICP波形
+        # 2）10s一段检测波形是否符合要求
         seg_len = 10 * fs  # 每段10秒
-        valid_segments = []
-        total_time = 0  # 用于累计总时间
+        # order = 0
 
         for i in range(0, len(filtered_icp), seg_len):
-            # segment = filtered_icp[i:i + seg_len]
-            plot_signals(sigs=filtered_sig[i:i + seg_len], chl=channel, title=f"filtered{i}-{i+seg_len}")
-            plot_signals(sigs=signals[i:i + seg_len], chl=channel, title=f"raw{i}-{i+seg_len}")
+            # num >= 200 结束遍历
+            if num >= 200:
+                break
+            # normal = False
+            # order += 1
+            icp = filtered_icp[i:i + seg_len]
+            abp = signals[i:i + seg_len, 1]
+            plot_signals(sigs=filtered_sig[i:i + seg_len], chl=channel, title=f"filtered-{i}-{i+seg_len}")
+            plot_signals(sigs=signals[i:i + seg_len], chl=channel, title=f"raw-{i}-{i+seg_len}")
 
-            # # 排除 ICP 值范围不符合的片段
-            # if (segment.min() < -10) or (segment.max() > 200):
-            #     continue
-            #
-            # # 检测波形周期是否符合要求,计算零交点（过零点）间的时间间隔，用于周期计算
-            # zero_crossings = np.where(np.diff(np.sign(segment)))[0]
-            # periods = np.diff(zero_crossings) / fs  # 单位：秒
-            # if len(periods) == 0 or periods.min() < 0.56 or periods.max() > 1.04:
-            #     continue
-            #
-            # # 累计有效时长
-            # valid_segments.append(segment)
-            # total_time += len(segment) / fs  # 累计时间（秒）
-            #
-            # # 如果累计时间超过5分钟（300秒），保存片段
-            # if total_time >= 300:
-            #     # filtered_segments.append(np.concatenate(valid_segments))
-            #     valid_segments = []  # 重置有效片段
-            #     total_time = 0
+            # plt.plot(icp)
+            # plt.title(f"Filtered ICP segment {i}-{i + seg_len}")
+            # plt.show()
+
+            # 1) 排除ICP ABP 异常值
+            if (icp.min() < -10) or (icp.max() > 200) or (abp.min() < 20) or (abp.max() > 300):
+                # 滤波结果写入文件
+                # res_normal.append(
+                #     [row['file_path'], row['sub_dirname'], row['file'], order, i, i+seg_len, normal])
+                print("ICP ABP 异常值 ")
+                patient = row['sub_dirname']
+                file = row['file']
+                save_path = f"svm_miniset/0/{patient[:4]}/{patient}"
+                save_signals(
+                    sigs=filtered_sig[i:i + seg_len], chl=channel, title=f"{file.split('.')[0]}-{i}-{i + seg_len}",
+                    save_path=save_path)
+                num += 1
+                continue
+            # 利用自相关函数求icp abp主周期
+            icp_period = period_autocorrelation(icp, fs)
+            abp_period = period_autocorrelation(abp, fs)
+
+            # 2) 其中一个返回值为none
+            if (icp_period is None) or (abp_period is None):
+                print(f"未找到周期性峰值 icp_period: {icp_period}, abp_period: {abp_period}")
+                patient = row['sub_dirname']
+                file = row['file']
+                save_path = f"svm_miniset/0/{patient[:4]}/{patient}"
+                save_signals(
+                    sigs=filtered_sig[i:i + seg_len], chl=channel, title=f"{file.split('.')[0]}-{i}-{i + seg_len}",
+                    save_path=save_path)
+                num += 1
+                continue
+
+
+            print(f"icp_period: {icp_period}, abp_period: {abp_period}, diff: {abs(icp_period-abp_period)}")
+
+            # 3) ICP ABP 周期差异大于0.01
+            if abs(icp_period - abp_period) > 0.01 or icp_period < 0.56 or icp_period > 1.04:
+                # 保存0类
+                # 需要同时保存图片和数据，命名(XXXXX_NNNN_start_end) 保持一致（图片用于人工分类，数据用于训练
+                patient = row['sub_dirname']
+                file = row['file']
+                save_path = f"svm_miniset/0/{patient[:4]}/{patient}"
+                save_signals(
+                    sigs=filtered_sig[i:i + seg_len], chl=channel, title=f"{file.split('.')[0]}-{i}-{i+seg_len}",
+                    save_path=save_path)
+                num += 1
+                continue
+
+            # 保存1类
+            # 需要同时保存图片和数据，命名保持一致（图片用于人工分类，数据用于训练
+            patient = row['sub_dirname']
+            file = row['file']
+            save_path = f"svm_miniset/1/{patient[:4]}/{patient}"
+            save_signals(
+                sigs=filtered_sig[i:i + seg_len], chl=channel, title=f"{file.split('.')[0]}-{i}-{i + seg_len}",
+                save_path=save_path)
+            num += 1
+
+            # 机器学习分类 ?
 
     except Exception as e:
         print(f"Error loading file {row['file_path']}: {e}")
+
+print("save fig and data finished !!!")
