@@ -706,8 +706,8 @@ for index, row in noNaN.iterrows():
             # order += 1
             icp = filtered_icp[i:i + seg_len]
             abp = signals[i:i + seg_len, 1]
-            plot_signals(sigs=filtered_sig[i:i + seg_len], chl=channel, title=f"filtered-{i}-{i+seg_len}")
-            plot_signals(sigs=signals[i:i + seg_len], chl=channel, title=f"raw-{i}-{i+seg_len}")
+            # plot_splotignals(sigs=filtered_sig[i:i + seg_len], chl=channel, title=f"filtered-{i}-{i+seg_len}")
+            # plot_signals(sigs=signals[i:i + seg_len], chl=channel, title=f"raw-{i}-{i+seg_len}")
 
             # plt.plot(icp)
             # plt.title(f"Filtered ICP segment {i}-{i + seg_len}")
@@ -723,7 +723,8 @@ for index, row in noNaN.iterrows():
                 file = row['file']
                 save_path = f"svm_miniset/0/{patient[:4]}/{patient}"
                 save_signals(
-                    sigs=filtered_sig[i:i + seg_len], chl=channel, title=f"{file.split('.')[0]}-{i}-{i + seg_len}",
+                    sigs=filtered_sig[i:i + seg_len], chl=channel,
+                    title=f"{num}-{file.split('.')[0]}-{i}-{i + seg_len}",
                     save_path=save_path)
                 num += 1
                 continue
@@ -738,7 +739,8 @@ for index, row in noNaN.iterrows():
                 file = row['file']
                 save_path = f"svm_miniset/0/{patient[:4]}/{patient}"
                 save_signals(
-                    sigs=filtered_sig[i:i + seg_len], chl=channel, title=f"{file.split('.')[0]}-{i}-{i + seg_len}",
+                    sigs=filtered_sig[i:i + seg_len], chl=channel,
+                    title=f"{num}-{file.split('.')[0]}-{i}-{i + seg_len}",
                     save_path=save_path)
                 num += 1
                 continue
@@ -754,7 +756,8 @@ for index, row in noNaN.iterrows():
                 file = row['file']
                 save_path = f"svm_miniset/0/{patient[:4]}/{patient}"
                 save_signals(
-                    sigs=filtered_sig[i:i + seg_len], chl=channel, title=f"{file.split('.')[0]}-{i}-{i+seg_len}",
+                    sigs=filtered_sig[i:i + seg_len], chl=channel,
+                    title=f"{num}-{file.split('.')[0]}-{i}-{i + seg_len}",
                     save_path=save_path)
                 num += 1
                 continue
@@ -765,7 +768,8 @@ for index, row in noNaN.iterrows():
             file = row['file']
             save_path = f"svm_miniset/1/{patient[:4]}/{patient}"
             save_signals(
-                sigs=filtered_sig[i:i + seg_len], chl=channel, title=f"{file.split('.')[0]}-{i}-{i + seg_len}",
+                sigs=filtered_sig[i:i + seg_len], chl=channel,
+                title=f"{num}-{file.split('.')[0]}-{i}-{i + seg_len}",
                 save_path=save_path)
             num += 1
 
