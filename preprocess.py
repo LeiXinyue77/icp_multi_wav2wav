@@ -429,10 +429,10 @@ def save_signals(sigs, chl, title=" ", save_path=None):
 
     # 保存图像到指定路径
     if save_path:
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)  # 创建文件夹（如果不存在）
         fig_name = f"{title}.png"  # 图像文件名
         path_fig = os.path.join(save_path, "png")
+        if not os.path.exists(path_fig):
+            os.makedirs(path_fig)  # 创建文件夹（如果不存在）
         plt.savefig(os.path.join(path_fig, fig_name))  # 保存文件
         print(f"fig saved: {path_fig}/{fig_name}")
 
@@ -440,6 +440,8 @@ def save_signals(sigs, chl, title=" ", save_path=None):
         data_name = f"{title}.npy"
         path_data = os.path.join(save_path, "npy")
         data_file = os.path.join(path_data, f"{title}.npy")  # 保存为 .npy 格式
+        if not os.path.exists(path_data):
+            os.makedirs(path_data)
         np.save(data_file, sigs)
         print(f"data saved: {path_data}/{data_name}")
 
@@ -669,7 +671,7 @@ noNaN = pd.read_csv("result/pre/noNaN.csv")
 noNaN_partial = noNaN.iloc[0:2]
 num = 0  # 记录处理过的文件个数
 # 根据 noNaN 中的文件路径读取数据
-for index, row in noNaN.iterrows():
+for index, row in noNaN_partial.iterrows():
     try:
         with open(row["file_path"], "rb") as f:
             data = pickle.load(f)
