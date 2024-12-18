@@ -367,23 +367,25 @@ print("=================================  save finished ========================
 
 
 # 3. 第三步：波形读取与预处理
-def plot_signals(signals, channel):
+def plot_signals(sigs, chl, title="signals"):
     """
     参数：
         signals (numpy.ndarray): 信号数组，形状为 (样本数, 通道数)。
         channel (list): 每个通道的名称列表。
+        title (string): 标题
     """
-    if signals.shape[1] != len(channel):
+    if sigs.shape[1] != len(chl):
         raise ValueError("signals 通道数和 channel 名称数量不匹配！")
 
     # 创建一个 Nx1 的子图布局
-    fig, axes = plt.subplots(signals.shape[1], 1, figsize=(8, 12))
+    fig, axes = plt.subplots(sigs.shape[1], 1, figsize=(8, 12))
+    fig.suptitle(title, fontsize=16)
 
     # 遍历每个通道并绘制到对应的子图
-    for i in range(signals.shape[1]):  # 遍历通道
-        ax = axes[i]  # 获取第 i 个子图
-        ax.plot(signals[:, i], label=f"{channel[i]}")
-        ax.set_title(f"{channel[i]}")
+    for n in range(sigs.shape[1]):  # 遍历通道
+        ax = axes[n]  # 获取第 n 个子图
+        ax.plot(sigs[:, n], label=f"{chl[n]}")
+        ax.set_title(f"{chl[n]}")
         ax.set_xlabel("Sample")
         ax.set_ylabel("Amplitude")
         ax.legend()
@@ -509,26 +511,26 @@ print("============================================= NaN finished ==============
 
 
 # 将signal[start: end]划分为5min的片段，每个片段之间有30%的重叠
-def splitSig(signal, fs=125, segLenth=60*5, overlap=0.3):
+def splitSig(signal, sample_freq=125, segLenth=60*5, overlap=0.3):
     """
     将信号划分为带重叠的片段
 
     参数：
         signal (ndarray): 输入的信号数组。
-        fs (int): 采样率（Hz）。
+        sample_freq (int): 采样率（Hz）。
         segment_length (int): 每个片段的长度（秒）。
         overlap (float): 重叠百分比（0 到 1）。
 
     返回：
         splitSeg (list of ndarray): 符合条件的信号片段。
     """
-    samples = fs * segLenth
+    samples = sample_freq * segLenth
     overlap = int(samples * overlap)
     splitSeg = []
-    for i in range(0, len(signal), samples - overlap):
-        if i + samples > len(signal):
+    for s in range(0, len(signal), samples - overlap):
+        if s + samples > len(signal):
             break
-        splitSeg.append(signal[i: i + samples-1])
+        splitSeg.append(signal[s: s + samples-1])
 
     # 过滤掉小于5min的片段
     splitSeg = [seg for seg in splitSeg if len(seg) < samples]
@@ -544,7 +546,7 @@ normalized_cutoff_freq = cutoff_freq / (sampling_freq / 2)
 (b, a) = butter(order, normalized_cutoff_freq, btype='low', analog=False)
 print(a, b)
 # 读取 noNaN.csv 文件
-noNaN = pd.read_csv("result/pre/noNaN.csv")
+noNaN = pd.read_csv("result/pre/noNaN_p00_p04.csv")
 # 根据 noNaN 中的文件路径读取数据
 for index, row in noNaN.iterrows():
     try:
@@ -564,7 +566,7 @@ for index, row in noNaN.iterrows():
         channel = fields.get('sig_name', [])
 
         # 1) low-pass 滤波
-        filtered_icp = filtfilt(b, a, signals[:,0])
+        filtered_icp = filtfilt(b, a, signals[:, 0])
         filtered_sig = signals.copy()
         filtered_sig[:, 0] = filtered_icp
         # plot_signals(signals=filtered_sig, channel=channel)
@@ -579,9 +581,8 @@ for index, row in noNaN.iterrows():
 
         for i in range(0, len(filtered_icp), seg_len):
             # segment = filtered_icp[i:i + seg_len]
-            plot_signals(signals=filtered_sig[i:i + seg_len], channel=channel)
-            plot_signals(signals=signals[i:i + seg_len,0], channel=channel)
-            print("低通滤波")
+            plot_signals(sigs=filtered_sig[i:i + seg_len], chl=channel, title=f"filtered{i}-{i+seg_len}")
+            plot_signals(sigs=signals[i:i + seg_len], chl=channel, title=f"raw{i}-{i+seg_len}")
 
             # # 排除 ICP 值范围不符合的片段
             # if (segment.min() < -10) or (segment.max() > 200):
