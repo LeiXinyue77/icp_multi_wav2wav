@@ -656,15 +656,21 @@ def period_autocorrelation(sig, freq):
     return period
 
 
-# 滤波器设计
-numtaps = 9
-high_cutoff = 5
-low_cutoff = 0.5
-sampling_freq = 125
-high = high_cutoff / (sampling_freq / 2)
-low = low_cutoff / (sampling_freq / 2)
-b = firwin(numtaps, high, window="hamming", pass_zero="lowpass")
-print(b)
+# 低通滤波器
+def lowpass_filter(data, fs, N, high=5):
+    """
+    带通滤波
+    :param data: list, 输入信号数据
+    :param fs: int, 采样率
+    :param N: int, 滤波器阶数
+    :param high: int, 截止频率
+    :return: list, 滤波后信号
+    """
+    high = 2 * high / fs
+    b = firwin(N, high, window="hamming", pass_zero="lowpass")
+    filter = filtfilt(b, 1, data)  # data为要过滤的信号
+    return filter
+
 
 # 3.3 滤波ABP 并 统计- ABP > 20 and ABP < 300 的病人总数
 # 读取 validICP.csv 文件
@@ -687,7 +693,7 @@ for index, row in validICP.iterrows():
 
         if signals is not None:
             # band-pass 滤波 ABP
-            filtered_abp = filtfilt(b, 1, signals[:, 1])
+            filtered_abp = lowpass_filter(signals[:, 1], fs, N=9, high=5)
 
             # signals[:, 0] = filtered_icp
             # plot_signals(sigs=signals[0:1250,], chl=channel, title="after filtered")
