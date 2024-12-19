@@ -1,6 +1,6 @@
 from sys import prefix
 from IPython.display import display
-from scipy.signal import butter, filtfilt
+from scipy.signal import firwin, filtfilt
 import ast
 import wfdb
 import re
@@ -657,14 +657,14 @@ def period_autocorrelation(sig, freq):
 
 
 # 滤波器设计
-order = 3
+numtaps = 63
 high_cutoff = 5
 low_cutoff = 0.5
 sampling_freq = 125
 high = high_cutoff / (sampling_freq / 2)
 low = low_cutoff / (sampling_freq / 2)
-(b, a) = butter(N=order, Wn=[low, high], btype='bandpass', analog=False)
-print(a, b)
+b = firwin(numtaps, high, window="hamming", pass_zero="lowpass")
+print(b)
 
 # 3.3 滤波ICP 并 统计- ICP > -10 and ICP < 20 的病人总数
 # 读取 noNaN.csv 文件
@@ -687,7 +687,7 @@ for index, row in noNaN.iterrows():
 
         if signals is not None:
             # band-pass 滤波 ICP
-            filtered_icp = filtfilt(b, a, signals[:, 0])
+            filtered_icp = filtfilt(b, 1, signals[:, 0])
 
             # signals[:, 0] = filtered_icp
             # plot_signals(sigs=signals[0:1250,], chl=channel, title="after filtered")
