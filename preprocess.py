@@ -656,19 +656,95 @@ def period_autocorrelation(sig, freq):
     return period
 
 
-# 3.3 对信号进行分段、low-pass滤波等操作
-# 结果暂存
-res_normal = []
 # 滤波器设计
 order = 3
-cutoff_freq = 5
+high_cutoff = 5
+low_cutoff = 0.5
 sampling_freq = 125
-normalized_cutoff_freq = cutoff_freq / (sampling_freq / 2)
-(b, a) = butter(order, normalized_cutoff_freq, btype='low', analog=False)
+high = high_cutoff / (sampling_freq / 2)
+low = low_cutoff / (sampling_freq / 2)
+(b, a) = butter(N=order, Wn=[low, high], btype='bandpass', analog=False)
 print(a, b)
+
+# 3.3 滤波ICP 并 统计- ICP > -10 and ICP < 20 的病人总数
 # 读取 noNaN.csv 文件
 noNaN = pd.read_csv("result/pre/noNaN.csv")
-noNaN_partial = noNaN.iloc[0:2]
+min_length = 125 * 60 * 5
+# 根据 noNaN 中的文件路径读取数据
+res_valid_icp = []
+for index, row in noNaN.iterrows():
+    try:
+        with open(row["file_path"], "rb") as f:
+            data = pickle.load(f)
+        dat_start = row['start']
+        dat_end = row['end']
+        signals = data.get("sig", None)[dat_start:dat_end]
+        fields = data.get("fields", None)
+        fs = fields.get('fs', None)
+        channel = fields.get('sig_name', [])
+
+        # plot_signals(sigs=signals[0:1250,], chl=channel, title="before filtered")
+
+        if signals is not None:
+            # band-pass 滤波 ICP
+            filtered_icp = filtfilt(b, a, signals[:, 0])
+
+            # signals[:, 0] = filtered_icp
+            # plot_signals(sigs=signals[0:1250,], chl=channel, title="after filtered")
+
+            # ICP > -10 and ICP < 200 时返回true
+            valid_indices = (filtered_icp > -10) & (filtered_icp < 200)
+            segments = []
+            start_idx = None
+            for i, valid in enumerate(valid_indices):
+                if valid:
+                    # 如果当前行有效，且上一行无效，则开始新的段
+                    if start_idx is None:
+                        start_idx = i + dat_start
+                else:  # 如果当前行无效
+                    if start_idx is not None:  # 且上一行有效，则结束当前段
+                        segments.append((start_idx, i + dat_start))  # 记录当前段的开始和结束索引
+                        start_idx = None
+
+            # 检测最后一段
+            if start_idx is not None:
+                segments.append((start_idx, len(valid_indices) + dat_start))
+
+            # 检查每个段的长度是否大于 5min，如果是则保存
+            for start, end in segments:
+                if end - start >= min_length:
+                    print(
+                        f"Valid segment: {row['file_path']} [{start}, {end}]")
+                    res_valid_icp.append(
+                        [row['file_path'], row['sub_dirname'], row['file'], start, end])
+    except Exception as e:
+        print(f"Error loading file {row['file_path']}: {e}")
+
+# 使用集合 set 去重 res_noNaN 中的 sub_dirname
+validICP_patient_set = set(
+    sub_dirname for _, sub_dirname, _, _, _ in res_valid_icp)
+print(
+    f"ICP > -10 and ICP < 200 的病人总数: {len(validICP_patient_set)}")
+
+# 写入CSV文件
+csv_validICP = os.path.join("result/pre", "validICP.csv")
+with open(csv_validICP, mode="a", newline="", encoding="utf-8") as csv_file:
+    csv_writer = csv.writer(csv_file)
+    if csv_file.tell() == 0:
+        csv_writer.writerow(
+            ["file_path", "sub_dirname", "file", "start", "end"])  # 写入表头
+    csv_writer.writerows(res_valid_icp)
+
+print("============================================= valid icp finished =====================================")
+
+
+# 3.4 对信号进行分段、low-pass滤波等操作
+'''
+# 结果暂存
+# res_normal = []
+# 读取 noNaN.csv 文件
+noNaN = pd.read_csv("result/pre/noNaN.csv")
+noNaN_partial = noNaN.iloc[5411:6169]
 num = 0  # 记录处理过的文件个数
 # 根据 noNaN 中的文件路径读取数据
 for index, row in noNaN_partial.iterrows():
@@ -781,3 +857,5 @@ for index, row in noNaN_partial.iterrows():
         print(f"Error loading file {row['file_path']}: {e}")
 
 print("save fig and data finished !!!")
+
+'''
