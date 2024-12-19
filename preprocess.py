@@ -657,7 +657,7 @@ def period_autocorrelation(sig, freq):
 
 
 # 滤波器设计
-numtaps = 63
+numtaps = 9
 high_cutoff = 5
 low_cutoff = 0.5
 sampling_freq = 125
@@ -666,13 +666,13 @@ low = low_cutoff / (sampling_freq / 2)
 b = firwin(numtaps, high, window="hamming", pass_zero="lowpass")
 print(b)
 
-# 3.3 滤波ICP 并 统计- ICP > -10 and ICP < 20 的病人总数
-# 读取 noNaN.csv 文件
-noNaN = pd.read_csv("result/pre/noNaN.csv")
+# 3.3 滤波ABP 并 统计- ABP > 20 and ABP < 300 的病人总数
+# 读取 validICP.csv 文件
+validICP = pd.read_csv("result/pre/validICP.csv")
 min_length = 125 * 60 * 5
-# 根据 noNaN 中的文件路径读取数据
-res_valid_icp = []
-for index, row in noNaN.iterrows():
+# 根据 validICP 中的文件路径读取数据
+res_valid_abp = []
+for index, row in validICP.iterrows():
     try:
         with open(row["file_path"], "rb") as f:
             data = pickle.load(f)
@@ -686,14 +686,14 @@ for index, row in noNaN.iterrows():
         # plot_signals(sigs=signals[0:1250,], chl=channel, title="before filtered")
 
         if signals is not None:
-            # band-pass 滤波 ICP
-            filtered_icp = filtfilt(b, 1, signals[:, 0])
+            # band-pass 滤波 ABP
+            filtered_abp = filtfilt(b, 1, signals[:, 1])
 
             # signals[:, 0] = filtered_icp
             # plot_signals(sigs=signals[0:1250,], chl=channel, title="after filtered")
 
-            # ICP > -10 and ICP < 200 时返回true
-            valid_indices = (filtered_icp > -10) & (filtered_icp < 200)
+            # ABP > 20 and ABP < 300 时返回true
+            valid_indices = (filtered_abp > 20) & (filtered_abp < 300)
             segments = []
             start_idx = None
             for i, valid in enumerate(valid_indices):
@@ -715,27 +715,27 @@ for index, row in noNaN.iterrows():
                 if end - start >= min_length:
                     print(
                         f"Valid segment: {row['file_path']} [{start}, {end}]")
-                    res_valid_icp.append(
+                    res_valid_abp.append(
                         [row['file_path'], row['sub_dirname'], row['file'], start, end])
     except Exception as e:
         print(f"Error loading file {row['file_path']}: {e}")
 
 # 使用集合 set 去重 res_noNaN 中的 sub_dirname
-validICP_patient_set = set(
-    sub_dirname for _, sub_dirname, _, _, _ in res_valid_icp)
+validABP_patient_set = set(
+    sub_dirname for _, sub_dirname, _, _, _ in res_valid_abp)
 print(
-    f"ICP > -10 and ICP < 200 的病人总数: {len(validICP_patient_set)}")
+    f"ABP > 20 and ABP < 300 的病人总数: {len(validABP_patient_set)}")
 
 # 写入CSV文件
-csv_validICP = os.path.join("result/pre", "validICP.csv")
-with open(csv_validICP, mode="a", newline="", encoding="utf-8") as csv_file:
+csv_validABP = os.path.join("result/pre", "validABP.csv")
+with open(csv_validABP, mode="a", newline="", encoding="utf-8") as csv_file:
     csv_writer = csv.writer(csv_file)
     if csv_file.tell() == 0:
         csv_writer.writerow(
             ["file_path", "sub_dirname", "file", "start", "end"])  # 写入表头
-    csv_writer.writerows(res_valid_icp)
+    csv_writer.writerows(res_valid_abp)
 
-print("============================================= valid icp finished =====================================")
+print("============================================= valid abp finished =====================================")
 
 
 # 3.4 对信号进行分段、low-pass滤波等操作
