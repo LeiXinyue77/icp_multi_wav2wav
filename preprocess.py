@@ -1,9 +1,12 @@
-from sys import prefix
-from IPython.display import display
-from scipy.signal import firwin, filtfilt
-import ast
-import wfdb
-import re
+"""
+@Project ：
+@File    ：preprocess.py
+@Author  ：Lei Xinyue
+@Date    ：2024/12/20 13:36
+@Description: 训练前信号预处理
+"""
+
+from utils.signal_process import lowpass_filter
 import os
 import pandas as pd
 import pickle
@@ -11,7 +14,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import csv
 import pywt
-
 
 # 数据预处理
 # 1. 第一步：选出含有ICP、ABP信号，且fs=125Hz的记录
@@ -656,22 +658,6 @@ def period_autocorrelation(sig, freq):
     return period
 
 
-# 低通滤波器
-def lowpass_filter(data, fs, N, high=5):
-    """
-    带通滤波
-    :param data: list, 输入信号数据
-    :param fs: int, 采样率
-    :param N: int, 滤波器阶数
-    :param high: int, 截止频率
-    :return: list, 滤波后信号
-    """
-    high = 2 * high / fs
-    b = firwin(N, high, window="hamming", pass_zero="lowpass")
-    filter = filtfilt(b, 1, data)  # data为要过滤的信号
-    return filter
-
-
 # 3.3 滤波ABP 并 统计- ABP > 20 and ABP < 300 的病人总数
 # 读取 validICP.csv 文件
 validICP = pd.read_csv("result/pre/validICP.csv")
@@ -680,6 +666,8 @@ min_length = 125 * 60 * 5
 res_valid_abp = []
 for index, row in validICP.iterrows():
     try:
+        # row["file_path"] 前面需要拼接路径"data/"
+        read_path = os.path.join("data", row["file_path"])
         with open(row["file_path"], "rb") as f:
             data = pickle.load(f)
         dat_start = row['start']
