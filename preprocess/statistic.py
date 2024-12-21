@@ -9,23 +9,27 @@ import csv
 import os
 import pickle
 import re
+
+import numpy as np
 import pandas as pd
 import wfdb
 
+from utils.signal_process import lowpass_filter
 
-def statistic_signal():
+
+def statistic_all_signals():
     """
       # 统计信号总类（38）all_signal.dat
       # file_content.dat ---> file_content_list.dat
       # 统计记录总数（462）file_signal_map.dat
     """
-    df_loaded = pd.read_csv("data/pXX/file_contents.dat", sep=' ', header=None, engine='python')
+    df_loaded = pd.read_csv("result/pre/file_contents.dat", sep=' ', header=None, engine='python')
     # print(df_loaded)
     # df_loaded 中每一个元素是一个文件名，格式为 pXXNNNN-YYYY-MM-DD-hh-mm, 其中 XXNNNN 为病人编号
     matched_list = df_loaded.values.flatten()
     matched_list = list(filter(lambda x: isinstance(x, str) and x.strip() != '', matched_list))
     df = pd.DataFrame(matched_list, columns=["matched_file_name"])
-    df.to_csv("pXX/file_content_list.dat", header=False, index=False, quoting=False)
+    df.to_csv("result/pre/file_content_list.dat", header=False, index=False, quoting=False)
 
     patient_list = list(map(lambda x: x[:7], matched_list))
     patient_count = len(set(patient_list))
@@ -69,30 +73,30 @@ def statistic_signal():
             print(f"无法读取记录文件 {matched_file}：{e}")
 
     df_file_signal_map = pd.DataFrame(file_signal_map)
-    df_file_signal_map.to_csv("data/pXX/file_signal_map.dat", sep=' ', header=False, index=False)
+    df_file_signal_map.to_csv("result/pre/file_signal_map.dat", sep=' ', header=False, index=False)
 
     # 将 all_signals 保存为单独的 .dat 文件
     df_all_signals = pd.DataFrame({'signals': list(all_signals)})
-    df_all_signals.to_csv("data/pXX/all_signals.dat", sep=' ', header=False, index=False)
+    df_all_signals.to_csv("result/pre/all_signals.dat", sep=' ', header=False, index=False)
 
     print("file_signal_map 和 all_signals 已保存为 .dat 文件")
 
 
 
 # 根据 file_signal_map 统计包含ICP ABP PLETH 信号的记录 和 病人个数
-def statistics_target(target_signals, save_file):
+def statistic_target(target, save_file):
     """
     据 file_signal_map 统计包含目标信号的记录和病人个数
-    :param target_signals: 目标信号集合 e.g. {"ICP", "ABP", "PLETH"}
+    :param target: 目标信号集合 e.g. {"ICP", "ABP", "PLETH"}
     :param save_file: 保存文件名
     :return:
     """
-    file_signal_map = pd.read_csv("pXX/file_signal_map.dat", sep=' ', header=None, names=["file", "signals"])
+    file_signal_map = pd.read_csv("result/pre/file_signal_map.dat", sep=' ', header=None, names=["file", "signals"])
     file_signal_map["signals"] = file_signal_map["signals"].str.split(',')
 
     # 筛选包含 ICP, ABP, PLETH 的记录
     # target_signals = {"ICP", "ABP", "PLETH"}
-    filtered_records = file_signal_map[file_signal_map["signals"].apply(lambda x: target_signals.issubset(x))]
+    filtered_records = file_signal_map[file_signal_map["signals"].apply(lambda x: target.issubset(x))]
 
     # 提取病人编号
     filtered_records["patient_id"] = filtered_records["file"].str[:7]
@@ -107,10 +111,10 @@ def statistics_target(target_signals, save_file):
     filtered_records.to_csv(save_path, sep=' ', index=False, header=False)
 
 
-def statistics_Large5min(save_path, save_file, min_length):
+def statistic_Large5min(save_path, save_file, min_length):
     # 3.1 统计时间大于 5min 的信号文件
     root_path = "data/pXX"
-    pattern = re.compile(r"^p0[0-9]$")
+    # pattern = re.compile(r"^p0[0-9]$")
     # min_length = 125 * 60 * 5
     res_datLarge5min = []
     patient_set = set()
@@ -129,7 +133,7 @@ def statistics_Large5min(save_path, save_file, min_length):
                             try:
                                 with open(file_path, "rb") as f:
                                     data = pickle.load(f)
-                                fields = data.get("fields", {})
+                                # fields = data.get("fields", {})
                                 signals = data.get("sig", None)
                                 # channel = fields.get('sig_name', [])
                                 # plot_signals(signals, channel)
@@ -157,6 +161,227 @@ def statistics_Large5min(save_path, save_file, min_length):
         csv_writer.writerows(res_datLarge5min)
 
 
+def statistic_noNaN(save_path, save_file):
+    """
+    no NaN values present in any signal
+    :param save_path:
+    :param save_file:
+    :return:
+    """
+    # 读取 datLarge5min.csv 文件
+    datLarge5min = pd.read_csv("result/pre/datLarge5min.csv")
+    min_length = 125 * 60 * 5
+    # 根据 datLarge5min 中的文件路径读取数据
+    res_noNaN = []
+    for index, row in datLarge5min.iterrows():
+        try:
+            row_path = os.path.join("data", row["file_path"])
+            with open(row_path, "rb") as f:
+                data = pickle.load(f)
+            signals = data.get("sig", None)
+
+            if signals is not None:
+                valid_indices = ~np.isnan(signals).any(axis=1)  # 一行中无 NaN 返回 True
+                # valid_signals = np.where(valid_indices)[0]  # 保留有效行
+                segments = []
+                start_idx = None
+                for i, valid in enumerate(valid_indices):
+                    if valid:
+                        # 如果当前行有效，且上一行无效，则开始新的段
+                        if start_idx is None:
+                            start_idx = i
+                    else:  # 如果当前行无效
+                        if start_idx is not None:  # 且上一行有效，则结束当前段
+                            segments.append((start_idx, i))  # 记录当前段的开始和结束索引
+                            start_idx = None
+
+                # 检测最后一段
+                if start_idx is not None:
+                    segments.append((start_idx, len(valid_indices) - 1))
+
+                # 检查每个段的长度是否大于 5min，如果是则保存
+                for start, end in segments:
+                    if end - start >= min_length:
+                        print(
+                            f"Valid segment: {row['file_path']} [{start}, {end}]")
+                        res_noNaN.append(
+                            [row['file_path'], row['sub_dirname'], row['file'], start, end])
+        except Exception as e:
+            print(f"Error loading file {row['file_path']}: {e}")
+
+    # 使用集合 set 去重 res_noNaN 中的 sub_dirname
+    noNaN_patient_set = set(
+        sub_dirname for _, sub_dirname, _, _, _ in res_noNaN)
+    print(
+        f"No NaN values present in any signal的病人总数: {len(noNaN_patient_set)}")
+
+    # 写入CSV文件
+    csv_noNaN = os.path.join(save_path, save_file)
+    with open(csv_noNaN, mode="a", newline="", encoding="utf-8") as csv_file:
+        csv_writer = csv.writer(csv_file)
+        if csv_file.tell() == 0:
+            csv_writer.writerow(
+                ["file_path", "sub_dirname", "file", "start", "end"])  # 写入表头
+        csv_writer.writerows(res_noNaN)
+
+
+def statistic_validICP(read_file, save_path, save_file):
+    """
+    滤波ICP 并 统计- ICP > -10 and ICP < 200 的病人总数
+    :param read_file:
+    :param save_path:
+    :param save_file:
+    :return:
+    """
+    # 3.3 滤波ICP 并 统计- ICP > -10 and ICP < 20 的病人总数
+    # 读取 noNaN.csv 文件
+    noNaN = pd.read_csv(read_file)
+    min_length = 125 * 60 * 5
+    # 根据 noNaN 中的文件路径读取数据
+    res_valid_icp = []
+    for index, row in noNaN.iterrows():
+        try:
+            row_path = os.path.join("data", row["file_path"])
+            with open(row_path, "rb") as f:
+                data = pickle.load(f)
+            dat_start = row['start']
+            dat_end = row['end']
+            signals = data.get("sig", None)[dat_start:dat_end]
+            fields = data.get("fields", None)
+            fs = fields.get('fs', None)
+            # channel = fields.get('sig_name', [])
+
+            # plot_signals(sigs=signals[0:1250,], chl=channel, title="before filtered")
+
+            if signals is not None:
+                # band-pass 滤波 ICP
+                filtered_icp = lowpass_filter(signals[:, 0], fs, N=65, high=5)
+
+                # signals[:, 0] = filtered_icp
+                # plot_signals(sigs=signals[0:1250,], chl=channel, title="after filtered")
+
+                # ICP > -10 and ICP < 200 时返回true
+                valid_indices = (filtered_icp > -10) & (filtered_icp < 200)
+                segments = []
+                start_idx = None
+                for i, valid in enumerate(valid_indices):
+                    if valid:
+                        # 如果当前行有效，且上一行无效，则开始新的段
+                        if start_idx is None:
+                            start_idx = i + dat_start
+                    else:  # 如果当前行无效
+                        if start_idx is not None:  # 且上一行有效，则结束当前段
+                            segments.append((start_idx, i + dat_start))  # 记录当前段的开始和结束索引
+                            start_idx = None
+
+                # 检测最后一段
+                if start_idx is not None:
+                    segments.append((start_idx, len(valid_indices) + dat_start))
+
+                # 检查每个段的长度是否大于 5min，如果是则保存
+                for start, end in segments:
+                    if end - start >= min_length:
+                        print(
+                            f"Valid segment: {row['file_path']} [{start}, {end}]")
+                        res_valid_icp.append(
+                            [row['file_path'], row['sub_dirname'], row['file'], start, end])
+        except Exception as e:
+            print(f"Error loading file {row['file_path']}: {e}")
+
+    # 使用集合 set 去重 res_noNaN 中的 sub_dirname
+    validICP_patient_set = set(
+        sub_dirname for _, sub_dirname, _, _, _ in res_valid_icp)
+    print(
+        f"ICP > -10 and ICP < 200 的病人总数: {len(validICP_patient_set)}")
+
+    # 写入CSV文件
+    csv_validICP = os.path.join(save_path, save_file)
+    with open(csv_validICP, mode="a", newline="", encoding="utf-8") as csv_file:
+        csv_writer = csv.writer(csv_file)
+        if csv_file.tell() == 0:
+            csv_writer.writerow(
+                ["file_path", "sub_dirname", "file", "start", "end"])  # 写入表头
+        csv_writer.writerows(res_valid_icp)
+
+
+def statistic_validABP(read_file, save_path, save_file):
+    """
+    滤波ABP 并 统计- ABP > 20 and ABP < 300 的病人总数
+    :param read_file:
+    :param save_path:
+    :param save_file:
+    :return:
+    """
+    # 读取 validICP.csv 文件
+    validICP = pd.read_csv(read_file)
+    min_length = 125 * 60 * 5
+    # 根据 validICP 中的文件路径读取数据
+    res_valid_abp = []
+    for index, row in validICP.iterrows():
+        try:
+            # row["file_path"] 前面需要拼接路径"data/"
+            row_path = os.path.join("data", row["file_path"])
+            with open(row_path, "rb") as f:
+                data = pickle.load(f)
+            dat_start = row['start']
+            dat_end = row['end']
+            signals = data.get("sig", None)[dat_start:dat_end]
+            fields = data.get("fields", None)
+            fs = fields.get('fs', None)
+            # channel = fields.get('sig_name', [])
+
+            # plot_signals(sigs=signals[0:1250,], chl=channel, title="before filtered")
+
+            if signals is not None:
+                # band-pass 滤波 ABP
+                filtered_abp = lowpass_filter(signals[:, 1], fs, N=9, high=5)
+
+                # signals[:, 0] = filtered_icp
+                # plot_signals(sigs=signals[0:1250,], chl=channel, title="after filtered")
+
+                # ABP > 20 and ABP < 300 时返回true
+                valid_indices = (filtered_abp > 20) & (filtered_abp < 300)
+                segments = []
+                start_idx = None
+                for i, valid in enumerate(valid_indices):
+                    if valid:
+                        # 如果当前行有效，且上一行无效，则开始新的段
+                        if start_idx is None:
+                            start_idx = i + dat_start
+                    else:  # 如果当前行无效
+                        if start_idx is not None:  # 且上一行有效，则结束当前段
+                            segments.append((start_idx, i + dat_start))  # 记录当前段的开始和结束索引
+                            start_idx = None
+
+                # 检测最后一段
+                if start_idx is not None:
+                    segments.append((start_idx, len(valid_indices) + dat_start))
+
+                # 检查每个段的长度是否大于 5min，如果是则保存
+                for start, end in segments:
+                    if end - start >= min_length:
+                        print(
+                            f"Valid segment: {row['file_path']} [{start}, {end}]")
+                        res_valid_abp.append(
+                            [row['file_path'], row['sub_dirname'], row['file'], start, end])
+        except Exception as e:
+            print(f"Error loading file {row['file_path']}: {e}")
+
+    # 使用集合 set 去重 res_noNaN 中的 sub_dirname
+    validABP_patient_set = set(
+        sub_dirname for _, sub_dirname, _, _, _ in res_valid_abp)
+    print(
+        f"ABP > 20 and ABP < 300 的病人总数: {len(validABP_patient_set)}")
+
+    # 写入CSV文件
+    csv_validABP = os.path.join(save_path, save_file)
+    with open(csv_validABP, mode="a", newline="", encoding="utf-8") as csv_file:
+        csv_writer = csv.writer(csv_file)
+        if csv_file.tell() == 0:
+            csv_writer.writerow(
+                ["file_path", "sub_dirname", "file", "start", "end"])  # 写入表头
+        csv_writer.writerows(res_valid_abp)
+
 
 if __name__ == '__main__':
     '''
@@ -164,14 +389,24 @@ if __name__ == '__main__':
     # file_content.dat ---> file_content_list.dat
     # 统计记录总数（462）file_signal_map.dat
     '''
-
-    statistic_signal()
+    statistic_all_signals()
 
     # 统计包含 ICP, ABP, PLETH 信号的记录 和 病人个数
     target_signals = {"ICP", "ABP", "PLETH"}
-    statistics_target(target_signals, "file_signal_map_icp_abp_pleth")
+    statistic_target(target_signals, "file_signal_map_icp_abp_pleth")
 
-    statistics_Large5min("data/pXX", "csv_datLarge5min.csv", 125 * 60 * 5)
+    statistic_Large5min("data/pXX", "csv_datLarge5min.csv", 125 * 60 * 5)
     print(
-        f" ========================= save finished: csv_datLarge5min !!! ========================")
+        f" ========================= save Large5min finished: csv_datLarge5min !!! ========================")
+
+    statistic_noNaN(save_path="result/pre", save_file="noNaN.csv")
+    print("=================================  save noNaN finished: noNaN.csv ===============================")
+
+    statistic_validICP(read_file="result/pre/noNaN.csv", save_path="result/pre", save_file="validICP.csv")
+    print("=================================  save validABP finished: validABP.csv===============================")
+
+    statistic_validABP(read_file="result/pre/validICP.csv", save_path="result/pre", save_file="validABP.csv")
+    print("=================================  save validABP finished: validABP.csv===============================")
+
+
 
