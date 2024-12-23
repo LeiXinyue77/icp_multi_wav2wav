@@ -64,7 +64,7 @@ if __name__=="__main__":
     data = pd.read_csv('../result/pre/validABP.csv')
     num = 0  # 记录处理过的文件个数 ( 生成svm_dataSet, 每个pXX文件夹200个片段)
     # 根据 validABP 中的文件路径读取数据
-    for index, row in data[50:336].iterrows():
+    for index, row in data.iterrows():
         try:
             row_path = os.path.join("../data", row["file_path"])
             with open(row_path, "rb") as f:
