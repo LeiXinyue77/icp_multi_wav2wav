@@ -6,7 +6,7 @@
 @Description: 训练前信号预处理
 """
 from ecg.delay_coordinate_mapping import v_cal, delay_cor, left_padding
-from svm.save_data import save_signals
+from ml.save_data import save_signals
 from utils.plot import plot_signals
 from utils.signal_process import lowpass_filter, bandpass_filter, period_autocorrelation
 import utils.ecg_display as dp
@@ -131,7 +131,7 @@ if __name__=="__main__":
                           f"ecg_period: {avg_hr}")
                     patient = row['sub_dirname']
                     file = row['file']
-                    save_path = f"../svm/data/v2/0/{patient[:3]}/{patient}"
+                    save_path = f"../ml/data/v2/0/{patient[:3]}/{patient}"
                     save_signals(
                         sigs=filsig[i:i + seg_len], chl=channel,
                         title=f"{num}-{file.split('.')[0]}-{i}-{i + seg_len}",
@@ -146,7 +146,7 @@ if __name__=="__main__":
                     # 需要同时保存图片和数据，命名(XXXXX_NNNN_start_end) 保持一致（图片用于人工分类，数据用于训练
                     patient = row['sub_dirname']
                     file = row['file']
-                    save_path = f"../svm/data/v2/0/{patient[:3]}/{patient}"
+                    save_path = f"../ml/data/v2/0/{patient[:3]}/{patient}"
                     save_signals(
                         sigs=filsig[i:i + seg_len], chl=channel,
                         title=f"{num}-{file.split('.')[0]}-{i}-{i + seg_len}",
@@ -158,7 +158,7 @@ if __name__=="__main__":
                 # 需要同时保存图片和数据，命名保持一致（图片用于人工分类，数据用于训练
                 patient = row['sub_dirname']
                 file = row['file']
-                save_path = f"../svm/data/v2/1/{patient[:3]}/{patient}"
+                save_path = f"../ml/data/v2/1/{patient[:3]}/{patient}"
                 save_signals(
                     sigs=filsig[i:i + seg_len], chl=channel,
                     title=f"{num}-{file.split('.')[0]}-{i}-{i + seg_len}",

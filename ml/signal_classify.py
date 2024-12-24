@@ -1,12 +1,13 @@
 """
 @Project ：
-@File    ：svm/signal_classify.py
+@File    ：ml/signal_classify.py
 @Author  ：Lei Xinyue
 @Date    ：2024/12/23 21:45
 @Description: 机器学习信号分类：正常信号、异常信号
 """
 import os
 import numpy as np
+import xgboost as xgb
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
@@ -17,7 +18,7 @@ from joblib import dump, load
 def load_data(base_path):
     """
        遍历指定路径下的第三级子文件夹中的 .npy 文件并加载数据
-       :param base_path: 数据文件的根目录 (如 svm/data/v2/0 或 svm/data/v2/1)
+       :param base_path: 数据文件的根目录 (如 ml/data/v2/0 或 ml/data/v2/1)
        :return: x_data (特征数据), y_data (标签数据)
        """
     x_data = []
@@ -108,16 +109,16 @@ if __name__ == '__main__':
     # 将数据划分为训练集和测试集
     x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.2, random_state=42)
 
-    # 初始化并训练 SVM 模型
-    svm_model = SVC(kernel='linear', C=1.0, random_state=42)
-    svm_model.fit(x_train, y_train)
+    # 初始化并训练 XGBoost 模型
+    xgb_model = xgb.XGBClassifier(random_state=42)
+    xgb_model.fit(x_train, y_train)
 
     # 保存模型
-    dump(svm_model, 'svm_model.joblib')
-    print("SVM 模型已保存到 'svm_model.joblib'")
+    dump(xgb_model, 'xgb_model.joblib')
+    print("XGBoost 模型已保存到 'xgb_model.joblib'")
 
     # 加载模型并进行预测
-    loaded_model = load('svm_model.joblib')
+    loaded_model = load('xgb_model.joblib')
     y_pred = loaded_model.predict(x_test)
 
     # 输出分类报告
