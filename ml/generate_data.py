@@ -49,9 +49,9 @@ def check_diff(periods, threshold):
     for i in range(n):
         for j in range(i + 1, n):
             if abs(periods[i] - periods[j]) > threshold:
-                print(f"Difference too large: {periods[i]} and {periods[j]}")
-                return True
-    return False
+                # print(f"Difference too large: {periods[i]} and {periods[j]}")
+                return False
+    return True
 
 
 def generate_ml_data():
@@ -141,7 +141,8 @@ def generate_ml_data():
 
                 # 3) 任意两两周期差异大于0.01
                 diff_flag = check_diff([icp_period, abp_period, ppg_period, ecg_period], 0.01)
-                if diff_flag:
+                # diff_flag 取反
+                if not diff_flag:
                     # 保存0类
                     # 需要同时保存图片和数据，命名(XXXXX_NNNN_start_end) 保持一致（图片用于人工分类，数据用于训练
                     patient = row['sub_dirname']

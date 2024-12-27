@@ -5,7 +5,7 @@
 @Date    ：2024/12/20 16:51
 @Description: 绘图等相关方法
 """
-
+import numpy as np
 from matplotlib import pyplot as plt
 
 
@@ -38,3 +38,29 @@ def plot_signals(sigs, chl, title=" "):
     plt.tight_layout()
     # 显示图像
     plt.show()
+
+
+def plot_signal_landmark(fs, signal, peaks, troughs):
+    """
+    绘制PPG信号图，标注峰值和谷值
+
+    参数:
+    fs (int): 采样频率
+    ppg_signal (array): PPG信号数据
+    peaks (array): 峰值的索引
+    troughs (array): 谷值的索引
+    """
+    time = np.linspace(0, len(signal)/fs, len(signal))
+    plt.figure(figsize=(12, 6))
+    plt.plot(time, signal, label="PPG Signal", linewidth=1)
+    plt.plot(time[peaks], signal[peaks], 'ro', label="Peaks")
+    plt.plot(time[troughs], signal[troughs], 'go', label="Troughs")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Amplitude")
+    plt.title("Signal with Detected Peaks and Troughs")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+# 调用示例
+# plot_ppg_signal(time, ppg_signal, peaks, troughs)
