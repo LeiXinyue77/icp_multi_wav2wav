@@ -26,7 +26,7 @@ def period_valid_hr():
         逐个片段计算，符合要求的片段累计5min，则保留
     """
     # 读取 validABP.csv 文件
-    data = pd.read_csv('../result/pre/validABP.csv')
+    data = pd.read_csv('result/validABP.csv')
     valid_hr = []
     # 根据 validABP 中的文件路径读取数据
     for index, row in data.iterrows():
@@ -108,7 +108,7 @@ def period_valid_hr():
         f"No NaN in mean HR 的病人总数： {len(validHR_patient_set)}")
 
     # 写入CSV文件
-    save_path = "../result/pre"
+    save_path = "result/pre"
     save_file = "validHR.csv"
     csv_validABP = os.path.join(save_path, save_file)
     with open(csv_validABP, mode="a", newline="", encoding="utf-8") as csv_file:
@@ -130,7 +130,7 @@ def check_valid_period(periods, low, high):
 
 def period_valid_icp_abp_ppg():
     # 读取 validABP.csv 文件
-    data = pd.read_csv('../result/pre/validHR.csv')
+    data = pd.read_csv('result/validHR.csv')
     xgb_model = load('../ml/xgb_model.joblib')
     valid_res = []
     # 根据 validHR 中的文件路径读取数据
@@ -247,7 +247,7 @@ def period_valid_icp_abp_ppg():
         f"valid period 的病人总数： {len(valid_patient_set)}")
 
     # 写入CSV文件
-    save_path = "../result/pre"
+    save_path = "result/pre"
     save_file = "validPeriod.csv"
     csv_validABP = os.path.join(save_path, save_file)
     with open(csv_validABP, mode="a", newline="", encoding="utf-8") as csv_file:
@@ -263,7 +263,7 @@ def patient_time():
     计算每个病人有效时间
     :return:
     """
-    data = pd.read_csv('../result/pre/validPeriod.csv')
+    data = pd.read_csv('result/validPeriod.csv')
     # 初始化一个字典，用于存储每个病人的有效累计时间
     time_map = {}
     for index, row in data.iterrows():
@@ -291,7 +291,7 @@ def patient_time():
             print(f"Error loading file {row['file_path']}: {e}")
 
     # 将累计有效时间写入 CSV 文件
-    output_path = '../result/pre/validTimeofPatient.csv'
+    output_path = 'result/validTimeofPatient.csv'
     df = pd.DataFrame(list(time_map.items()), columns=['Patient', 'Effective_Time'])
     df.to_csv(output_path, index=False)
     print(f"cumulative effective time saved: {output_path}")
@@ -318,7 +318,7 @@ def patient_time():
     plt.tight_layout()
 
     # 保存统计图
-    plot_path = '../result/pre/patient_time_histogram.png'
+    plot_path = 'result/patient_time_histogram.png'
     plt.savefig(plot_path)
     plt.show()
     print(f"picture saved: {plot_path}")

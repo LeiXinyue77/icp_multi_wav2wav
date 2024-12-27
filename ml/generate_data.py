@@ -60,7 +60,7 @@ def generate_ml_data():
     :return:
     """
     # 读取 validABP.csv 文件
-    data = pd.read_csv('../result/pre/validABP.csv')
+    data = pd.read_csv('../preprocess/result/validABP.csv')
     num = 0  # 记录处理过的文件个数 ( 生成svm_dataSet, 每个pXX文件夹200个片段)
     # 根据 validABP 中的文件路径读取数据
     for index, row in data.iterrows():

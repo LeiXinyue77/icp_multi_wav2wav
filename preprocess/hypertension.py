@@ -15,7 +15,7 @@ from utils.signal_process import lowpass_filter, period_autocorrelation
 
 def CalHypertensionTime():
     # 读取 result/pre/validPeriod.csv 文件
-    data = pd.read_csv("../result/pre/validPeriod.csv")
+    data = pd.read_csv("result/validPeriod.csv")
     time_map = {}
     time_res = []
     for index, row in data.iterrows():
@@ -105,13 +105,13 @@ def CalHypertensionTime():
             print(f"Error loading file {row['file_path']}: {e}")
 
     # 持续颅内高压的时间写入 CSV 文件
-    output_path = '../result/pre/HypertensionTimeofPatient.csv'
+    output_path = 'result/HypertensionTimeofPatient.csv'
     df = pd.DataFrame(list(time_map.items()), columns=['Patient', 'Hypertension_Time'])
     df.to_csv(output_path, index=False)
     print(f"cumulative hypertension time of each patient saved: {output_path}")
 
     # 每个文件的持续颅内高压时间写入 CSV 文件
-    output_path = '../result/pre/HypertensionTimeofFile.csv'
+    output_path = 'result/HypertensionTimeofFile.csv'
     df = pd.DataFrame(time_res, columns=['file_path', 'sub_dirname', 'file', 'start', 'end',
                                          'Hypertension_Time'])
     df.to_csv(output_path, index=False)
@@ -123,8 +123,8 @@ if __name__=="__main__":
     print("======================================= CalHypertensionTime finished !!! ===========================================")
 
     # 统计 颅内高压持续时间大于1min，且有效时间大于1小时的病人
-    HypertensionTime = pd.read_csv("../result/pre/HypertensionTimeofPatient.csv")  # 时间单位为秒
-    ValidTime = pd.read_csv("../result/pre/validTimeofPatient.csv")   # 时间单位为小时
+    HypertensionTime = pd.read_csv("result/HypertensionTimeofPatient.csv")  # 时间单位为秒
+    ValidTime = pd.read_csv("result/validTimeofPatient.csv")   # 时间单位为小时
 
     # 选择颅内高压持续时间大于1min，且有效时间大于1小时的病人
     HypertensionTime = HypertensionTime[HypertensionTime['Hypertension_Time'] > 60]
@@ -135,7 +135,7 @@ if __name__=="__main__":
     # 计算持续颅内高压时间占比
     res['Rate'] = res['Hypertension_Time'] / res['Effective_Time']
     # 计算结果写入 CSV 文件
-    output_path = '../result/pre/ValidHypertensionTime.csv'
+    output_path = 'result/ValidHypertensionTime.csv'
     res.to_csv(output_path, index=False)
     print(f"Valid Hypertension Time saved: {output_path}")
 

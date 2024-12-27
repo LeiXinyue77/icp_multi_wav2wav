@@ -42,32 +42,35 @@ if __name__ == '__main__':
 ```
 
 ### 1.4 清理数据
+
 ```python
 
 if __name__ == '__main__':
-    '''
-    # 统计信号总类（38）all_signal.dat
-    # file_content.dat ---> file_content_list.dat
-    # 统计记录总数（462）file_signal_map.dat
-    '''
-    statistic_all_signals()
+  '''
+  # 统计信号总类（38）all_signal.dat
+  # file_content.dat ---> file_content_list.dat
+  # 统计记录总数（462）file_signal_map.dat
+  '''
+  statistic_all_signals()
 
-    # 统计包含 ICP, ABP, PLETH 信号的记录 和 病人个数
-    target_signals = {"ICP", "ABP", "PLETH"}
-    statistic_target(target_signals, "file_signal_map_icp_abp_pleth")
+  # 统计包含 ICP, ABP, PLETH 信号的记录 和 病人个数
+  target_signals = {"ICP", "ABP", "PLETH"}
+  statistic_target(target_signals, "file_signal_map_icp_abp_pleth")
 
-    statistic_Large5min("data/pXX", "csv_datLarge5min.csv", 125 * 60 * 5)
-    print(
-        f" ========================= save Large5min finished: csv_datLarge5min !!! ========================")
+  statistic_Large5min("data/pXX", "csv_datLarge5min.csv", 125 * 60 * 5)
+  print(
+    f" ========================= save Large5min finished: csv_datLarge5min !!! ========================")
 
-    statistic_noNaN(save_path="result/pre", save_file="noNaN.csv")
-    print("=================================  save noNaN finished: noNaN.csv ===============================")
+  statistic_noNaN(save_path="preprocess/result/pre", save_file="noNaN.csv")
+  print("=================================  save noNaN finished: noNaN.csv ===============================")
 
-    statistic_validICP(read_file="result/pre/noNaN.csv", save_path="result/pre", save_file="validICP.csv")
-    print("=================================  save validABP finished: validABP.csv===============================")
+  statistic_validICP(read_file="preprocess/result/noNaN.csv", save_path="preprocess/result/pre",
+                     save_file="validICP.csv")
+  print("=================================  save validABP finished: validABP.csv===============================")
 
-    statistic_validABP(read_file="result/pre/validICP.csv", save_path="result/pre", save_file="validABP.csv")
-    print("=================================  save validABP finished: validABP.csv===============================")
+  statistic_validABP(read_file="preprocess/result/validICP.csv", save_path="preprocess/result/pre",
+                     save_file="validABP.csv")
+  print("=================================  save validABP finished: validABP.csv===============================")
 ```
 - 包含 ICP , ABP, PLETH, II 的病人总数: 161
 - len(signals) >= min_length 的病人总数: 124
