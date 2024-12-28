@@ -3,7 +3,7 @@
 @File    ：preprocess/hypertension.py
 @Author  ：Lei Xinyue
 @Date    ：2024/12/24 15:31
-@Description: 特征提取
+@Description: 计算颅内高压持续时间
 """
 import os
 import pickle
