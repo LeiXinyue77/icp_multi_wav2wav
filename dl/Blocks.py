@@ -23,7 +23,6 @@ def conv_block_Asym_Inception(in_dim, out_dim, act_fn, kernel_size=3, stride=1, 
     return model
 
 
-# TODO: Change order of block: BN + Activation + Conv
 def conv_decod_block(in_dim, out_dim, act_fn):
     model = nn.Sequential(
         nn.ConvTranspose1d(in_dim, out_dim, kernel_size=3, stride=2, padding=1, output_padding=1),
