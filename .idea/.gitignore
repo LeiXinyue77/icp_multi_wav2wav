@@ -6,7 +6,8 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
-pXX/
-pXX_abp_icp_pleth/
+data/pXX/
+data/pXX_abp_icp_pleth/
 .vscode/
-svm_miniset/
+dl/data
+dl/result
