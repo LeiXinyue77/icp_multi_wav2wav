@@ -20,9 +20,16 @@ def plot_signals(sigs, chl, title=" "):
     if sigs.shape[1] != len(chl):
         raise ValueError("signals 通道数和 channel 名称数量不匹配！")
 
+        # 如果只有一个通道，axes 不是列表，需要特殊处理
+    single_channel = sigs.shape[1] == 1
+
     # 创建一个 Nx1 的子图布局
-    fig, axes = plt.subplots(sigs.shape[1], 1, figsize=(8, 12))
+    fig, axes = plt.subplots(sigs.shape[1], 1, figsize=(8, 6 if single_channel else 12))
     fig.suptitle(title, fontsize=16)
+
+    # 将 axes 转换为列表形式以统一处理
+    if single_channel:
+        axes = [axes]
 
     # 遍历每个通道并绘制到对应的子图
     for n in range(sigs.shape[1]):  # 遍历通道
@@ -35,7 +42,7 @@ def plot_signals(sigs, chl, title=" "):
         ax.grid(True)
 
     # 调整子图布局以避免重叠
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
     # 显示图像
     plt.show()
 
