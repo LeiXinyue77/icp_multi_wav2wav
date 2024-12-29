@@ -63,8 +63,8 @@ class IcpDataset(Dataset):
         target = self.target_scaler.transform(target)
 
         # Convert to tensors and move to CUDA
-        _input = torch.tensor(_input, dtype=torch.float32).to(self.device)
-        target = torch.tensor(target, dtype=torch.float32).to(self.device)
+        _input = torch.tensor(_input).double().to(self.device)
+        target = torch.tensor(target).double().to(self.device)
 
         return info, _input, target
 
