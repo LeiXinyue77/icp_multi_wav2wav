@@ -1,3 +1,9 @@
+<<<<<<< HEAD
 /dl/result/demo.onnx
 /data/
 /note/
+=======
+/dl/data/
+/dl/result/demo.onnx
+/data/
+>>>>>>> origin/master
