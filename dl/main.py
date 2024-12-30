@@ -14,7 +14,7 @@ def main(
         batch_size: int = 128,
         path_to_save_model="result/save_model",
         path_to_save_loss="result/save_loss",
-        path_to_save_scalar="result/save_scalar",
+        path_to_save_scalar="result/save_scaler",
         device="cuda:0",
         start_fold = 1,
 ):
@@ -70,7 +70,7 @@ if __name__ == "__main__":
                         help="Path to save trained model.")
     parser.add_argument("--path_to_save_loss", type=str, default="result/save_loss", help="Path to save loss "
                                                                                             "metrics.")
-    parser.add_argument("--path_to_save_scalar", type=str, default="result/save_scalar", help="Path to save scalers.")
+    parser.add_argument("--path_to_save_scaler", type=str, default="result/save_scalar", help="Path to save scalers.")
     parser.add_argument("--device", type=str, default="cuda:0",
                         help="Device to run the training on, e.g., 'cuda:0' or 'cpu'.")
     parser.add_argument("--start_fold", type=int, default=1, help="Start fold number for training.")

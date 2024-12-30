@@ -11,7 +11,7 @@ from utils.plot import plot_signals
 class IcpDataset(Dataset):
     """Face Landmarks dataset."""
 
-    def __init__(self, folders, root_dir, device="cuda:0", scaler_save_path="result/save_scalar"):
+    def __init__(self, folders, root_dir, device="cuda:0", scaler_save_path="result/save_scaler"):
         """
         Args:
             folders (List): List of folders containing the npy files
@@ -81,7 +81,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 if __name__ == "__main__":
     folders = ['folder2', 'folder3', 'folder4', 'folder5']
     root_dir = 'data'
-    scaler_save_path = 'result/save_scalar'
+    scaler_save_path = 'result/save_scaler'
     train_dataset = IcpDataset(folders, root_dir, device="cuda:0", scaler_save_path=scaler_save_path)
     train_dataloader = DataLoader(train_dataset, batch_size=128, shuffle=True)
     for i, (info, _input, target) in enumerate(train_dataloader):
