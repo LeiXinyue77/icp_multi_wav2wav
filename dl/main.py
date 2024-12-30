@@ -14,7 +14,7 @@ def main(
         batch_size: int = 128,
         path_to_save_model="result/save_model",
         path_to_save_loss="result/save_loss",
-        path_to_save_scalar="result/save_scaler",
+        path_to_save_scaler="result/save_scaler",
         device="cuda:0",
         start_fold = 1,
 ):
@@ -34,8 +34,8 @@ def main(
         train_folder = [folder for folder in all_folders if folder != val_folder]
         print(f"Training folders: {train_folder}, Validation folder: {val_folder}")
 
-        train_dataset = IcpDataset(folders=train_folder, root_dir='data',device=device,scaler_save_path=path_to_save_scalar)
-        val_dataset = IcpDataset(folders=[val_folder], root_dir='data',device=device,scaler_save_path=path_to_save_scalar)
+        train_dataset = IcpDataset(folders=train_folder, root_dir='data',device=device,scaler_save_path=path_to_save_scaler)
+        val_dataset = IcpDataset(folders=[val_folder], root_dir='data',device=device,scaler_save_path=path_to_save_scaler)
         print(f"Training dataset size: {len(train_dataset)}, Validation dataset size: {len(val_dataset)}")
 
         # DataLoader for the fold
@@ -70,7 +70,7 @@ if __name__ == "__main__":
                         help="Path to save trained model.")
     parser.add_argument("--path_to_save_loss", type=str, default="result/save_loss", help="Path to save loss "
                                                                                             "metrics.")
-    parser.add_argument("--path_to_save_scaler", type=str, default="result/save_scalar", help="Path to save scalers.")
+    parser.add_argument("--path_to_save_scaler", type=str, default="result/save_scaler", help="Path to save scalers.")
     parser.add_argument("--device", type=str, default="cuda:0",
                         help="Device to run the training on, e.g., 'cuda:0' or 'cpu'.")
     parser.add_argument("--start_fold", type=int, default=1, help="Start fold number for training.")
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         batch_size=args.batch_size,
         path_to_save_model=args.path_to_save_model,
         path_to_save_loss=args.path_to_save_loss,
-        path_to_save_scalar=args.path_to_save_scalar,
+        path_to_save_scaler=args.path_to_save_scaler,
         device=args.device,
         start_fold=args.start_fold
     )
