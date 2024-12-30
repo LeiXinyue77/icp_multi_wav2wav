@@ -12,8 +12,8 @@ def Train(train_dl, val_dl, EPOCH, path_to_save_model, path_to_save_loss, device
 
     start_epoch = -1
     device = torch.device(device)
-    model = IVD_Net_asym(input_nc=1, output_nc=1, ngf=32).double().to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+    model = IVD_Net_asym(input_nc=1, output_nc=1, ngf=8).double().to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     criterion = torch.nn.MSELoss()
     min_val_loss = float('inf')
 
@@ -37,7 +37,7 @@ def Train(train_dl, val_dl, EPOCH, path_to_save_model, path_to_save_loss, device
             src = _input.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
             tgt = target.permute(0, 2, 1)  # torch.Size([batch_size,n_features,n_samples])
             # torch.Size([batch_size,n_features,n_samples])
-            pred = model(src)
+            pred = model(src).double()
             loss = criterion(pred, tgt)
             loss.backward()
             optimizer.step()
@@ -48,10 +48,10 @@ def Train(train_dl, val_dl, EPOCH, path_to_save_model, path_to_save_loss, device
         with torch.no_grad():
             model.eval()
             for info, _input, target in val_dl:
-                src = _input.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
-                tgt = target.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
+                src = _input.permute(0, 2, 1) # torch.Size([batch_size, n_features, n_samples])
+                tgt = target.permute(0, 2, 1) # torch.Size([batch_size, n_features, n_samples])
                 # torch.Size([batch_size, n_features, n_samples])
-                pred = model(src).double().to(device)
+                pred = model(src).double()
                 loss = criterion(pred, tgt)
                 val_loss += loss.detach().item()
             val_loss /= len(val_dl)

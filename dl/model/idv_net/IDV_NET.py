@@ -195,9 +195,9 @@ class IVD_Net_asym(nn.Module):
         # ############################# #
         # ~~~~~~ Encoding path ~~~~~~~  #
 
-        i0 = input[:, 0:1, :].double()  # bz * 1  * width   #(n,1,1024)
-        i1 = input[:, 1:2, :].double()   # (n,1,1024)
-        i2 = input[:, 2:3, :].double() # (n,1,1024)
+        i0 = input[:, 0:1, :]   # bz * 1  * width   #(n,1,1024)
+        i1 = input[:, 1:2, :]   # (n,1,1024)
+        i2 = input[:, 2:3, :]   # (n,1,1024)
         # i3 = input[:, 3:4, :].double()  # (2,1,1024)
 
         # -----  First Level --------

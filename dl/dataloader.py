@@ -1,7 +1,6 @@
+import joblib
 import numpy as np
-import pandas as pd
-from sklearn.utils import shuffle
-from torch.utils.data import Dataset, DataLoader, SequentialSampler
+from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import MinMaxScaler
 import os
 import torch
@@ -12,7 +11,7 @@ from utils.plot import plot_signals
 class IcpDataset(Dataset):
     """Face Landmarks dataset."""
 
-    def __init__(self, folders, root_dir):
+    def __init__(self, folders, root_dir, device="cuda:0", scaler_save_path="result/save_scalar"):
         """
         Args:
             folders (List): List of folders containing the npy files
@@ -21,7 +20,7 @@ class IcpDataset(Dataset):
         # load data
         self.data = []
         self.info = []
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.device = device
         for folder in folders:
             # print(folder)
             for root, dirs, files in os.walk(os.path.join(root_dir, folder)):
@@ -46,6 +45,12 @@ class IcpDataset(Dataset):
         self.input_scaler.fit(all_inputs)
         self.target_scaler.fit(all_targets)
 
+        input_path = os.path.join(scaler_save_path, "input_scaler.pkl")
+        target_path = os.path.join(scaler_save_path, "target_scaler.pkl")
+        joblib.dump(self.input_scaler, input_path)
+        joblib.dump(self.target_scaler, target_path)
+        print(f"Scalers saved to {scaler_save_path}")
+
     def __len__(self):
         # return number of frames
         return int(len(self.data))
@@ -69,12 +74,16 @@ class IcpDataset(Dataset):
         return info, _input, target
 
 
+# 设置 CUDA 设备
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
 # test the dataloader
 if __name__ == "__main__":
-    folders = ['folder1', 'folder2', 'folder3', 'folder4']
+    folders = ['folder2', 'folder3', 'folder4', 'folder5']
     root_dir = 'data'
-    train_dataset = IcpDataset(folders, root_dir)
-    train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=False)
+    scaler_save_path = 'result/save_scalar'
+    train_dataset = IcpDataset(folders, root_dir, device="cuda:0", scaler_save_path=scaler_save_path)
+    train_dataloader = DataLoader(train_dataset, batch_size=128, shuffle=True)
     for i, (info, _input, target) in enumerate(train_dataloader):
         plot_signals(_input[0].cpu().numpy(), ['abp', 'ppg', 'ecg'], title="Input")
         plot_signals(target[0].cpu().numpy(), ['icp'], title="Target")
