@@ -6,6 +6,3 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
-data/pXX/
-data/pXX_abp_icp_pleth/
-.vscode/
