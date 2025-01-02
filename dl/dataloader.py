@@ -11,7 +11,7 @@ from utils.plot import plot_signals
 class IcpDataset(Dataset):
     """Face Landmarks dataset."""
 
-    def __init__(self, folders, root_dir, device="cuda:0", scaler_save_path="result/save_scaler"):
+    def __init__(self, folders, root_dir, device="cuda:0"):
         """
         Args:
             folders (List): List of folders containing the npy files
@@ -30,26 +30,16 @@ class IcpDataset(Dataset):
                         try:
                             npy_data = np.load(file_path)
                             # print(npy_data.shape)
-                            self.data.append(npy_data)
+                            # 归一化npy_data到[0, 1]
+                            # 按列归一化到 [0, 1]
+                            npy_data_min = np.min(npy_data, axis=0)  # 每列的最小值
+                            npy_data_max = np.max(npy_data, axis=0)  # 每列的最大值
+                            npy_data_range = np.where(npy_data_max - npy_data_min == 0, 1, npy_data_max - npy_data_min)
+                            normalized_data = (npy_data - npy_data_min) / npy_data_range
+                            self.data.append(normalized_data)
                             self.info.append(file_path[:-4])
                         except Exception as e:
                             print(f"Error reading file {file_path}: {e}")
-
-        # Initialize scalers for normalization
-        self.input_scaler = MinMaxScaler(feature_range=(0, 1))
-        self.target_scaler = MinMaxScaler(feature_range=(0, 1))
-
-        # Fit scalers using all data
-        all_inputs = np.concatenate([data[:, 1:4] for data in self.data], axis=0)
-        all_targets = np.concatenate([data[:, 0] for data in self.data], axis=0).reshape(-1, 1)
-        self.input_scaler.fit(all_inputs)
-        self.target_scaler.fit(all_targets)
-
-        input_path = os.path.join(scaler_save_path, "input_scaler.pkl")
-        target_path = os.path.join(scaler_save_path, "target_scaler.pkl")
-        joblib.dump(self.input_scaler, input_path)
-        joblib.dump(self.target_scaler, target_path)
-        print(f"Scalers saved to {scaler_save_path}")
 
     def __len__(self):
         # return number of frames
@@ -63,10 +53,6 @@ class IcpDataset(Dataset):
         _input = self.data[idx][:, 1:4]
         target = self.data[idx][:, 0].reshape(-1, 1)
 
-        # Normalize input and target
-        _input = self.input_scaler.transform(_input)
-        target = self.target_scaler.transform(target)
-
         # Convert to tensors and move to CUDA
         _input = torch.tensor(_input).double().to(self.device)
         target = torch.tensor(target).double().to(self.device)
@@ -79,11 +65,10 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 # test the dataloader
 if __name__ == "__main__":
-    folders = ['folder2', 'folder3', 'folder4', 'folder5']
+    folders = ['folder1']
     root_dir = 'data'
-    scaler_save_path = 'result/save_scaler'
-    train_dataset = IcpDataset(folders, root_dir, device="cuda:0", scaler_save_path=scaler_save_path)
-    train_dataloader = DataLoader(train_dataset, batch_size=128, shuffle=True)
+    train_dataset = IcpDataset(folders, root_dir, device="cuda:0")
+    train_dataloader = DataLoader(train_dataset, batch_size=512, shuffle=True)
     for i, (info, _input, target) in enumerate(train_dataloader):
         plot_signals(_input[0].cpu().numpy(), ['abp', 'ppg', 'ecg'], title="Input")
         plot_signals(target[0].cpu().numpy(), ['icp'], title="Target")
