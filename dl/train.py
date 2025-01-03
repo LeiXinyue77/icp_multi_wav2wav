@@ -50,7 +50,7 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
                 # 计算当前的平均损失
                 avg_loss = train_loss / (batch_idx + 1)
                 # 更新训练进度条
-                train_bar.set_postfix(batch_loss=f"{loss.detach().item():.4f}", avg_loss=f"{avg_loss:.4f}")
+                train_bar.set_postfix(avg_loss=f"{avg_loss:.4f}")
                 train_bar.update(1)
         # 计算平均训练损失
         train_loss /= len(train_dl)
@@ -74,7 +74,7 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
                     avg_loss = val_loss / (batch_idx + 1)
 
                     # 更新进度条，显示平均损失
-                    val_bar.set_postfix(batch_loss=f"{loss.detach().item():.4f}", avg_loss=f"{avg_loss:.4f}")
+                    val_bar.set_postfix(avg_loss=f"{avg_loss:.4f}")
                     val_bar.update(1)
             # 计算平均验证损失
             val_loss /= len(val_dl)
