@@ -11,14 +11,14 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 def main(
         epoch: int = 50,
-        batch_size: int = 512 ,
+        batch_size: int = 1024,
         path_to_save_model="result/save_model",
         path_to_save_loss="result/save_loss",
         device="cuda:0",
         start_fold = 1,
 ):
     # 设置随机数种子
-    setup_seed(20)
+    setup_seed(99)
     # 初始化设备
     device = torch.device(device if torch.cuda.is_available() and "cuda" in device else "cpu")
     print(f"=================================== Device: {device} ================================================")
@@ -63,7 +63,7 @@ def main(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--epoch", type=int, default=50, help="Number of training epochs.")
-    parser.add_argument("--batch_size", type=int, default=512, help="Batch size for DataLoader.")
+    parser.add_argument("--batch_size", type=int, default=1024, help="Batch size for DataLoader.")
     parser.add_argument("--path_to_save_model", type=str, default="result/save_model",
                         help="Path to save trained model.")
     parser.add_argument("--path_to_save_loss", type=str, default="result/save_loss", help="Path to save loss "
