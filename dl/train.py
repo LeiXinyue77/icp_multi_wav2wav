@@ -1,11 +1,10 @@
 import logging
 from tqdm import tqdm
-import torch
 from dl.model.attention_u_net.AM_UNET import Attention_Multi_UNet
 from helpers import *
 
 
-def Train(train_dl, val_dl, EPOCH, path_to_save_model, path_to_save_loss, device, RESUME):
+def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, device, resume):
     # 配置日志记录
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(name)s %(message)s",
@@ -23,7 +22,7 @@ def Train(train_dl, val_dl, EPOCH, path_to_save_model, path_to_save_loss, device
     min_val_loss = float('inf')
 
     # 断点续训，加载模型
-    if RESUME:
+    if resume:
         path_checkpoint = f"{path_to_save_model}/ckpt_best.pth"
         checkpoint = torch.load(path_checkpoint)
         model.load_state_dict(checkpoint['net'])
@@ -32,11 +31,12 @@ def Train(train_dl, val_dl, EPOCH, path_to_save_model, path_to_save_loss, device
         min_val_loss = checkpoint['min_val_loss']
 
     # 训练循环
-    for epoch in range(start_epoch + 1, EPOCH):
+    for epoch in range(start_epoch + 1, train_epoch):
         train_loss = 0
         model.train()
         # 训练进度条
-        with tqdm(total=len(train_dl), desc=f"Epoch {epoch + 1}/{EPOCH} [Training]", leave=True) as train_bar:
+        with (tqdm(total=len(train_dl), desc=f"Epoch {epoch + 1}/{train_epoch} [Training]", unit="it", leave=True) as
+              train_bar):
             for batch_idx, (info, _input, target)in enumerate(train_dl):  # for each data set
                 optimizer.zero_grad()
                 src = _input.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
@@ -45,9 +45,12 @@ def Train(train_dl, val_dl, EPOCH, path_to_save_model, path_to_save_loss, device
                 loss = criterion(pred, tgt)
                 loss.backward()
                 optimizer.step()
+                # 累及损失
                 train_loss += loss.detach().item()
+                # 计算当前的平均损失
+                avg_loss = train_loss / (batch_idx + 1)
                 # 更新训练进度条
-                train_bar.set_postfix(loss=f"{loss.detach().item():.4f}")
+                train_bar.set_postfix(batch_loss=f"{loss.detach().item():.4f}", avg_loss=f"{avg_loss:.4f}")
                 train_bar.update(1)
         # 计算平均训练损失
         train_loss /= len(train_dl)
@@ -55,16 +58,22 @@ def Train(train_dl, val_dl, EPOCH, path_to_save_model, path_to_save_loss, device
         # 验证阶段
         val_loss = 0
         model.eval()
-        with tqdm(total=len(val_dl), desc=f"Epoch {epoch + 1}/{EPOCH} [Validation]", leave=True) as val_bar:
+        with tqdm(total=len(val_dl), desc=f"Epoch {epoch + 1}/{train_epoch} [Validation]", unit="it", leave=True) as val_bar:
             with torch.no_grad():
                 for batch_idx, (info, _input, target) in enumerate(val_dl):
                     src = _input.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
                     tgt = target.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
                     pred = model(src).double()
                     loss = criterion(pred, tgt)
+
+                    # 累积损失
                     val_loss += loss.detach().item()
-                    # 更新验证进度条
-                    val_bar.set_postfix(loss=f"{loss.detach().item():.4f}")
+
+                    # 计算当前的平均损失
+                    avg_loss = val_loss / (batch_idx + 1)
+
+                    # 更新进度条，显示平均损失
+                    val_bar.set_postfix(batch_loss=f"{loss.detach().item():.4f}", avg_loss=f"{avg_loss:.4f}")
                     val_bar.update(1)
             # 计算平均验证损失
             val_loss /= len(val_dl)
