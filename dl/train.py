@@ -14,7 +14,7 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
     logger = logging.getLogger(__name__)
 
     # 初始化模型和优化器
-    start_epoch = -1
+    start_epoch = 1
     device = torch.device(device)
     model = Attention_Multi_UNet(input_nc=1, output_nc=1, ngf=8).double().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
@@ -27,15 +27,15 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
         checkpoint = torch.load(path_checkpoint)
         model.load_state_dict(checkpoint['net'])
         optimizer.load_state_dict(checkpoint['optimizer'])
-        start_epoch = checkpoint['epoch']
+        start_epoch = checkpoint['epoch'] + 1
         min_val_loss = checkpoint['min_val_loss']
 
     # 训练循环
-    for epoch in range(start_epoch + 1, train_epoch):
+    for epoch in range(start_epoch, train_epoch+1):
         train_loss = 0
         model.train()
         # 训练进度条
-        with (tqdm(total=len(train_dl), desc=f"Epoch {epoch + 1}/{train_epoch} [Training]", unit="it", leave=True) as
+        with (tqdm(total=len(train_dl), desc=f"Epoch {epoch}/{train_epoch} [Training]", unit="it", leave=True) as
               train_bar):
             for batch_idx, (info, _input, target)in enumerate(train_dl):  # for each data set
                 optimizer.zero_grad()
@@ -58,7 +58,8 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
         # 验证阶段
         val_loss = 0
         model.eval()
-        with tqdm(total=len(val_dl), desc=f"Epoch {epoch + 1}/{train_epoch} [Validation]", unit="it", leave=True) as val_bar:
+        with (tqdm(total=len(val_dl), desc=f"Epoch {epoch}/{train_epoch} [Validation]", unit="it", leave=True) as
+              val_bar):
             with torch.no_grad():
                 for batch_idx, (info, _input, target) in enumerate(val_dl):
                     src = _input.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
@@ -96,7 +97,7 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
             torch.save(checkpoint, f'{path_to_save_model}/ckpt_best.pth')
 
         # 每10个epoch保存一次模型
-        if (epoch + 1) % 10 == 0:
+        if epoch % 10 == 0:
             checkpoint = {
                 "net": model.state_dict(),
                 'optimizer': optimizer.state_dict(),

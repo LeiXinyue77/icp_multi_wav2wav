@@ -49,13 +49,13 @@ def main(
         os.makedirs(fold_loss_path, exist_ok=True)
 
         # Start training for this fold
-        if fold == 1:
-            resume = True
-        else:
-            resume = False
+        # if fold == 1:
+        #     resume = True
+        # else:
+        #     resume = False
         Train(train_dl=train_dataloader, val_dl=val_dataloader, train_epoch=epoch,
               path_to_save_model=fold_model_path, path_to_save_loss=fold_loss_path,
-              device=device, resume=resume)
+              device=device, resume=False)
 
         # Print fold completion
         print(f"======================= Training Fold {fold} completed successfully !!! ===========================")
