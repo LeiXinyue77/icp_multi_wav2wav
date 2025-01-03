@@ -17,7 +17,10 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
     start_epoch = 1
     device = torch.device(device)
     model = Attention_Multi_UNet(input_nc=1, output_nc=1, ngf=8).double().to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
+    # 学习率调度器
+    # Option 1: StepLR (每隔10个epoch，学习率衰减0.1倍)
+    scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
     criterion = torch.nn.L1Loss()
     min_val_loss = float('inf')
 
@@ -78,8 +81,11 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
                     val_bar.update(1)
             # 计算平均验证损失
             val_loss /= len(val_dl)
+
+        # 更新学习率（适用于 StepLR 和 ExponentialLR）
+        scheduler.step()
         # 记录训练和验证损失
-        logger.info(f"Epoch: {epoch}, Training loss: {train_loss:.4f}, Validation loss: {val_loss:.4f}")
+        logger.info(f"Epoch: {epoch}, Training loss: {train_loss:.4f}, Validation loss: {val_loss:.4f}, LR: {optimizer.param_groups[0]['lr']:.6f}")
         log_loss(epoch, train_loss, val_loss, path_to_save_loss)
 
         # 如果当前验证损失较小，则保存最优模型
