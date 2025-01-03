@@ -35,8 +35,8 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
         train_loss = 0
         model.train()
         # 训练进度条
-        with (tqdm(total=len(train_dl), desc=f"Epoch {epoch}/{train_epoch} [Training]", unit="it", leave=True) as
-              train_bar):
+        with (tqdm(total=len(train_dl), desc=f"Epoch {epoch}/{train_epoch} [Training]", leave=True, unit="it",
+                   unit_scale=False) as train_bar):
             for batch_idx, (info, _input, target)in enumerate(train_dl):  # for each data set
                 optimizer.zero_grad()
                 src = _input.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
@@ -58,8 +58,8 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
         # 验证阶段
         val_loss = 0
         model.eval()
-        with (tqdm(total=len(val_dl), desc=f"Epoch {epoch}/{train_epoch} [Validation]", unit="it", leave=True) as
-              val_bar):
+        with (tqdm(total=len(val_dl), desc=f"Epoch {epoch}/{train_epoch} [Validation]", leave=True, unit="it",
+                   unit_scale=False) as val_bar):
             with torch.no_grad():
                 for batch_idx, (info, _input, target) in enumerate(val_dl):
                     src = _input.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
