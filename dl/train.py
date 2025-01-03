@@ -2,15 +2,15 @@ import logging
 from tqdm import tqdm
 import torch
 from dl.model.attention_u_net.AM_UNET import Attention_Multi_UNet
-from helpers import *  # 假设此处已经包含 log_loss 函数
+from helpers import *
 
 
-def Train(train_dl, val_dl, EPOCH, path_to_save_model, path_to_save_loss, val_folder, device, RESUME):
+def Train(train_dl, val_dl, EPOCH, path_to_save_model, path_to_save_loss, device, RESUME):
     # 配置日志记录
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(name)s %(message)s",
                         datefmt="[%Y-%m-%d %H:%M:%S]",
-                        filename=f"result/train_log/training_log_{val_folder}.txt",
+                        filename=f"result/train_log/training_log.txt",
                         filemode="a")
     logger = logging.getLogger(__name__)
 
@@ -18,8 +18,8 @@ def Train(train_dl, val_dl, EPOCH, path_to_save_model, path_to_save_loss, val_fo
     start_epoch = -1
     device = torch.device(device)
     model = Attention_Multi_UNet(input_nc=1, output_nc=1, ngf=8).double().to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
-    criterion = torch.nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+    criterion = torch.nn.L1Loss()
     min_val_loss = float('inf')
 
     # 断点续训，加载模型
