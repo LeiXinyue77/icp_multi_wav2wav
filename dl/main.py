@@ -50,7 +50,7 @@ def main(
 
         # Start training for this fold
         Train(train_dl=train_dataloader, val_dl=val_dataloader, EPOCH=epoch,
-              path_to_save_model=fold_model_path, path_to_save_loss=fold_loss_path, val_folder=val_folder,
+              path_to_save_model=fold_model_path, path_to_save_loss=fold_loss_path,
               device=device, RESUME=False)
 
         # Print fold completion
