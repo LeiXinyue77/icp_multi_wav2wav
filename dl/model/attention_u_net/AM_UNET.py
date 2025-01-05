@@ -19,7 +19,7 @@ class CrossAttentionModule(nn.Module):
 
 
 class Conv_Down(nn.Module):
-    def __init__(self, in_dim, out_dim, act_fn):
+    def __init__(self, in_dim, out_dim, act_fn, dropout_rate=0.3):
         super(Conv_Down, self).__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
@@ -35,6 +35,9 @@ class Conv_Down(nn.Module):
         # 最终卷积
         self.conv_3 = conv_block(self.out_dim * 3, self.out_dim, act_fn)
 
+        # 添加Dropout
+        self.dropout_3 = nn.Dropout(p=dropout_rate)
+    
     def forward(self, input):
         # 第一层卷积
         conv_1 = self.conv_1(input)
@@ -49,11 +52,12 @@ class Conv_Down(nn.Module):
 
         # 最终卷积
         out2 = self.conv_3(out1)
+        out2 = self.dropout_3(out2)  # Dropout
         return out2
 
 
 class Conv_Up(nn.Module):
-    def __init__(self, in_dim, out_dim, act_fn):
+    def __init__(self, in_dim, out_dim, act_fn, dropout_rate=0.3):
         super(Conv_Up, self).__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
@@ -68,6 +72,10 @@ class Conv_Up(nn.Module):
 
         # 最终卷积
         self.conv_3 = conv_block(self.out_dim * 3, self.out_dim, act_fn)
+        
+        # 添加Dropout
+        self.dropout_3 = nn.Dropout(p=dropout_rate)
+    
 
     def forward(self, input):
         # 第一层卷积
@@ -83,6 +91,7 @@ class Conv_Up(nn.Module):
 
         # 最终卷积
         out2 = self.conv_3(out1)
+        out2 = self.dropout_3(out2)  # Dropout
         return out2
 
 
