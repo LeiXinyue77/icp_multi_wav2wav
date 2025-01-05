@@ -1,4 +1,5 @@
 import logging
+from torch.optim.lr_scheduler import StepLR
 from tqdm import tqdm
 from dl.model.attention_u_net.AM_UNET import Attention_Multi_UNet
 from helpers import *
@@ -26,12 +27,12 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
 
     # 断点续训，加载模型
     if resume:
-        path_checkpoint = f"{path_to_save_model}/ckpt_best.pth"
+        path_checkpoint = f"{path_to_save_model}/ckpt_model_20.pth"
         checkpoint = torch.load(path_checkpoint)
         model.load_state_dict(checkpoint['net'])
         optimizer.load_state_dict(checkpoint['optimizer'])
         start_epoch = checkpoint['epoch'] + 1
-        min_val_loss = checkpoint['min_val_loss']
+        min_val_loss = checkpoint['val_loss']
 
     # 训练循环
     for epoch in range(start_epoch, train_epoch+1):
