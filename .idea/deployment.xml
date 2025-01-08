@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="root@connect.westb.seetacloud.com:17876 password" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
-      <paths name="root@connect.westb.seetacloud.com:17876 password">
+      <paths name="root@connect.westb.seetacloud.com:48806 password">
         <serverdata>
           <mappings>
-            <mapping deploy="/root/autodl-tmp/icp_multi_wav2wav_1230" local="$PROJECT_DIR$" />
+            <mapping deploy="/root/autodl-tmp/icp_multi_wav2wav" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="root@connect.westc.gpuhub.com:29322 password">
+      <paths name="root@connect.westc.gpuhub.com:18983 password">
         <serverdata>
           <mappings>
-            <mapping deploy="/tmp/pycharm_project_136" local="$PROJECT_DIR$" />
+            <mapping deploy="/root/autodl-tmp/icp_multi_wav2wav" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

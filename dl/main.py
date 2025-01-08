@@ -15,7 +15,7 @@ def main(
         path_to_save_model="result/save_model",
         path_to_save_loss="result/save_loss",
         device="cuda:0",
-        start_fold = 1,
+        start_fold=1,
 ):
     # 设置随机数种子
     setup_seed(99)
