@@ -5,7 +5,6 @@ from dl.model.multi_wav_unet.MW_UNET import Multi_Wav_UNet
 from helpers import *
 
 
-
 def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, device, resume):
     # 配置日志记录
     logging.basicConfig(level=logging.INFO,
