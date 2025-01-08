@@ -1,8 +1,9 @@
 import logging
 from torch.optim.lr_scheduler import StepLR
 from tqdm import tqdm
-from dl.model.attention_u_net.AM_UNET import Attention_Multi_UNet
+from dl.model.multi_wav_unet.MW_UNET import Multi_Wav_UNet
 from helpers import *
+
 
 
 def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, device, resume):
@@ -17,7 +18,7 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
     # 初始化模型和优化器
     start_epoch = 1
     device = torch.device(device)
-    model = Attention_Multi_UNet(input_nc=1, output_nc=1, ngf=8).double().to(device)
+    model = Multi_Wav_UNet(input_nc=1, output_nc=1, ngf=8).double().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
     # 学习率调度器
     # Option 1: StepLR (每隔10个epoch，学习率衰减0.1倍)
