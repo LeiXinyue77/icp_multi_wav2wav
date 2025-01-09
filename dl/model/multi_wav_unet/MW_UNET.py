@@ -1,8 +1,7 @@
-import numpy as np
 import onnx
 from torchsummary import torchsummary
 import netron
-from dl.model.idv_net.Blocks import *
+from dl.model.Blocks import *
 import math
 import torch
 
@@ -12,8 +11,8 @@ class Conv_Down(nn.Module):
         super(Conv_Down, self).__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
-        self.conv_1 = conv_block(self.in_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
-        self.conv_2 = conv_block(self.out_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
+        self.conv_1 = conv_block(self.in_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=0)
+        self.conv_2 = conv_block(self.out_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=0)
 
         # 如果 dropout_prob > 0，添加 Dropout 层
         if dropout_prob > 0:
@@ -36,8 +35,8 @@ class Conv_Up(nn.Module):
         super(Conv_Up, self).__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
-        self.conv_1 = conv_block(self.in_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
-        self.conv_2 = conv_block(self.out_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
+        self.conv_1 = conv_block(self.in_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=0)
+        self.conv_2 = conv_block(self.out_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=0)
 
         # 如果 dropout_prob > 0，添加 Dropout 层
         if dropout_prob > 0:
@@ -223,17 +222,17 @@ class Multi_Wav_UNet(nn.Module):
 
 # cpu版本测试
 if __name__ == "__main__":
-    batch_size = 1
+    batch_size = 32
     num_classes = 1
-    ngf = 8
+    ngf = 64
 
-    model = Multi_Wav_UNet(input_nc=1, output_nc=num_classes, ngf=ngf).double().to('cuda:0')
+    model = Multi_Wav_UNet(input_nc=1, output_nc=num_classes, ngf=ngf).double().to('cpu')
     # print("total parameter:" + str(netSize(model)))
-    MRI = torch.randn(batch_size, 3, 1024).double().to('cuda:0')  # bz*modal*W*H     (bz,4,64,64)=>(bz,modal,T,1)
+    MRI = torch.randn(batch_size, 3, 1024).double().to('cpu')  # bz*modal*W*H     (bz,4,64,64)=>(bz,modal,T,1)
     predict = model(MRI)
     print(predict.shape)  # (bz, 2, 64, 64)=>(bz,1,T,1)
 
-    torchsummary.summary(model, input_size=(3, 1024), batch_size=1, device='cuda')
+    torchsummary.summary(model, input_size=(3, 1024), batch_size=1, device='cpu')
 
     print("====================================== model summary finished !!!========================================")
 
