@@ -88,6 +88,7 @@ class UNet1D(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
+        x = x.double()
         # Contraction path
         conv1 = self.conv1(x)
         pool1 = self.pool1(conv1)
@@ -133,8 +134,7 @@ if __name__ == "__main__":
     print(MRI.dtype)
     predict = model(MRI)
     print(predict.shape)  # (bz, 1, 512)
-    model = model.double().to('cpu')
-    torchsummary.summary(model, input_size=(1, 1, 512), batch_size=1, device='cpu')
+    torchsummary.summary(model, input_size=(1, 512), batch_size=1, device='cpu')
 
     print("====================================== model summary finished !!!========================================")
 
