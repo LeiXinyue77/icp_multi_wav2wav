@@ -11,8 +11,8 @@ class Conv_Down(nn.Module):
         super(Conv_Down, self).__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
-        self.conv_1 = conv_block(self.in_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=0)
-        self.conv_2 = conv_block(self.out_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=0)
+        self.conv_1 = conv_block(self.in_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
+        self.conv_2 = conv_block(self.out_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
 
         # 如果 dropout_prob > 0，添加 Dropout 层
         if dropout_prob > 0:
@@ -35,8 +35,8 @@ class Conv_Up(nn.Module):
         super(Conv_Up, self).__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
-        self.conv_1 = conv_block(self.in_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=0)
-        self.conv_2 = conv_block(self.out_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=0)
+        self.conv_1 = conv_block(self.in_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
+        self.conv_2 = conv_block(self.out_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
 
         # 如果 dropout_prob > 0，添加 Dropout 层
         if dropout_prob > 0:
@@ -64,7 +64,6 @@ class Multi_Wav_UNet(nn.Module):
 
         # act_fn = nn.LeakyReLU(0.2, inplace=True)
         act_fn = nn.ReLU()
-
         act_fn_2 = nn.ReLU()
 
         # ~~~ Encoding Paths ~~~~~~ #
@@ -113,41 +112,24 @@ class Multi_Wav_UNet(nn.Module):
 
         # ~~~ Decoding Path ~~~~~~ #
         self.deconv_1 = conv_decod_block(self.out_dim * 16, self.out_dim * 8, act_fn_2)
-        self.up_1_1 = conv_block(self.out_dim * 8, self.out_dim * 8, act_fn_2, kernel_size=2)
-        self.up_1_2 = Conv_Up(self.out_dim * 8, self.out_dim * 8, act_fn_2)
+        self.up_1 = Conv_Up(self.out_dim * 24, self.out_dim * 8, act_fn_2)
 
         self.deconv_2 = conv_decod_block(self.out_dim * 8, self.out_dim * 4, act_fn_2)
-        self.up_2_1 = conv_block(self.out_dim * 4, self.out_dim * 4, act_fn_2, kernel_size=2)
-        self.up_2_2 = Conv_Up(self.out_dim * 4, self.out_dim * 4, act_fn_2)
+        self.up_2 = Conv_Up(self.out_dim * 16,  self.out_dim * 4, act_fn_2)
 
         self.deconv_3 = conv_decod_block(self.out_dim * 4, self.out_dim * 2, act_fn_2)
-        self.up_3_1 = conv_block(self.out_dim * 2, self.out_dim * 2, act_fn_2, kernel_size=2)
-        self.up_3_2 = Conv_Up(self.out_dim * 2, self.out_dim * 2, act_fn_2)
+        self.up_3 = Conv_Up(self.out_dim * 8, self.out_dim * 2, act_fn_2)
 
         self.deconv_4 = conv_decod_block(self.out_dim*2, self.out_dim, act_fn_2)
-        self.up_4_1 = conv_block(self.out_dim, self.out_dim, act_fn_2, kernel_size=2)
-        self.up_4_2 = Conv_Up(self.out_dim, self.out_dim, act_fn_2)
-
+        self.up_4 = Conv_Up(self.out_dim * 4, self.out_dim, act_fn_2)
 
         self.out_1 = nn.Conv1d(self.out_dim, 2, kernel_size=3, stride=1, padding=1)
         self.out_2 = nn.Conv1d(2, self.final_out_dim, kernel_size=3, stride=1, padding=1)
 
-        # Params initialization
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-                # init.xavier_uniform(m.weight.data)
-                # init.xavier_uniform(m.bias.data)
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, input):
-
-        # ############################# #
         # ~~~~~~ Encoding path ~~~~~~~  #
-
         i0 = input[:, 0:1, :].double()  # bz * 1  * width   #(n,1,1024)
         i1 = input[:, 1:2, :].double()  # (n,1,1024)
         i2 = input[:, 2:3, :].double()  # (n,1,1024)
@@ -198,31 +180,31 @@ class Multi_Wav_UNet(nn.Module):
         bridge = self.bridge(inputBridge)  # (n,256,64)
 
         # ~~~~~~ Decoding path ~~~~~~~  #
-        deconv_1 = self.deconv_1(bridge)  # (n,256,128)
-        deconv_1 = self.up_1_1(deconv_1)  # (n,256,128)
-        skip_1 = (deconv_1 + down_4_0 + down_4_1 + down_4_2) / 4  # (n,256,128)  # Residual connection
-        up_1 = self.up_1_2(skip_1)  # (n,128,128)
-        deconv_2 = self.deconv_2(up_1)  # (n,128,)
-        deconv_2 = self.up_2_1(deconv_2)  # (n,128,256)
-        skip_2 = (deconv_2 + down_3_0 + down_3_1 + down_3_2) / 4  # (n,128,256) # Residual connection
-        up_2 = self.up_2_2(skip_2)  # (n,64,256)
-        deconv_3 = self.deconv_3(up_2)  # (n,64,512)
-        deconv_3 = self.up_3_1(deconv_3)  # (n,64,512)
-        skip_3 = (deconv_3 + down_2_0 + down_2_1 + down_2_2) / 4  # (n,64,512) # Residual connection
-        up_3 = self.up_3_2(skip_3)  # (n,64,512)
-        deconv_4 = self.deconv_4(up_3)  # (n,32,1024)
-        deconv_4 = self.up_4_1(deconv_4)  # (n,32,1024)
-        skip_4 = (deconv_4 + down_1_0 + down_1_1 + down_1_2) / 4  # (n,32,1024) # Residual connection
-        up_4 = self.up_4_2(skip_4)  # (n,32,1024)
-        out = self.out_1(up_4)  # (n,1,1024)
-        out = self.out_2(out)
+        deconv_1 = self.deconv_1(bridge)
+        skip_1 = torch.cat((deconv_1, down_4_0, down_4_1 + down_4_2), dim=1)
+        up_1 = self.up_1(skip_1)
 
-        return out  # (n,1,1024)
+        deconv_2 = self.deconv_2(up_1)
+        skip_2 = torch.cat((deconv_2, down_3_0, down_3_1, down_3_2), dim=1)
+        up_2 = self.up_2(skip_2)
+
+        deconv_3 = self.deconv_3(up_2)
+        skip_3 = torch.cat((deconv_3, down_2_0, down_2_1, down_2_2), dim=1)
+        up_3 = self.up_3(skip_3)
+
+        deconv_4 = self.deconv_4(up_3)
+        skip_4 = torch.cat((deconv_4, down_1_0, down_1_1, down_1_2), dim=1)
+        up_4 = self.up_4(skip_4)
+
+        out = self.out_1(up_4)
+        final_out = self.out_2(out)
+
+        return self.sigmoid(final_out)
 
 
 # cpu版本测试
 if __name__ == "__main__":
-    batch_size = 32
+    batch_size = 1
     num_classes = 1
     ngf = 64
 

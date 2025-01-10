@@ -84,7 +84,8 @@ class UNet1D(nn.Module):
             nn.Conv1d(64, 64, kernel_size=3, padding=1),
             nn.ReLU(inplace=True)
         )
-        self.final_conv = nn.Conv1d(64, 1, kernel_size=3, padding=1)
+        self.conv10 = nn.Conv1d(64, 2, kernel_size=3, padding=1)
+        self.final_conv = nn.Conv1d(2, 1, kernel_size=3, padding=1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
@@ -123,7 +124,8 @@ class UNet1D(nn.Module):
         merge9 = torch.cat((conv1, up9), dim=1)
         conv9 = self.conv9(merge9)
 
-        output = self.final_conv(conv9)
+        conv10 = self.conv10(conv9)
+        output = self.final_conv(conv10)
         return self.sigmoid(output)
 
 
