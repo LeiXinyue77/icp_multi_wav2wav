@@ -1,4 +1,27 @@
+"""
+@Project ：
+@File    ：dl/model/Blocks.py
+@Author  ：Lei Xinyue
+@Date    ：2025/01/11 21:14
+@Description: 基础模块
+"""
 import torch.nn as nn
+
+
+def depthwise_separable_conv(in_dim, out_dim, act_fn, kernel_size=3, stride=1, padding=0, dilation=1):
+    return nn.Sequential(
+        nn.Conv1d(in_dim, in_dim, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation, groups=in_dim),
+        nn.Conv1d(in_dim, out_dim, kernel_size=1),
+        act_fn
+    )
+
+
+def depthwise_separable_deconv(in_dim, out_dim, act_fn, kernel_size=2, stride=2, padding=0, output_padding=0):
+    return nn.Sequential(
+        nn.ConvTranspose1d(in_dim, in_dim, kernel_size=kernel_size, stride=stride, padding=padding, output_padding=output_padding, groups=in_dim),
+        nn.Conv1d(in_dim, out_dim, kernel_size=1),
+        act_fn,
+    )
 
 
 def conv_block(in_dim, out_dim, act_fn, kernel_size=3, stride=1, padding=0, dilation=1):

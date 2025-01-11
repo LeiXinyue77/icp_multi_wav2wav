@@ -11,8 +11,8 @@ class Conv_Down(nn.Module):
         super(Conv_Down, self).__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
-        self.conv_1 = conv_block(self.in_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
-        self.conv_2 = conv_block(self.out_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
+        self.conv_1 = depthwise_separable_conv(self.in_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
+        self.conv_2 = depthwise_separable_conv(self.out_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
 
         # 如果 dropout_prob > 0，添加 Dropout 层
         if dropout_prob > 0:
@@ -35,8 +35,8 @@ class Conv_Up(nn.Module):
         super(Conv_Up, self).__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
-        self.conv_1 = conv_block(self.in_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
-        self.conv_2 = conv_block(self.out_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
+        self.conv_1 = depthwise_separable_conv(self.in_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
+        self.conv_2 = depthwise_separable_conv(self.out_dim, self.out_dim, act_fn, kernel_size=3, stride=1, padding=1)
 
         # 如果 dropout_prob > 0，添加 Dropout 层
         if dropout_prob > 0:
@@ -54,9 +54,9 @@ class Conv_Up(nn.Module):
         return out
 
 
-class Multi_Wav_UNet(nn.Module):
+class Multi_Wav_UNet_SeparableConv(nn.Module):
     def __init__(self, input_nc, output_nc, ngf):
-        super(Multi_Wav_UNet, self).__init__()
+        super(Multi_Wav_UNet_SeparableConv, self).__init__()
 
         self.in_dim = input_nc  # 1
         self.out_dim = ngf  # 32
@@ -111,22 +111,22 @@ class Multi_Wav_UNet(nn.Module):
         self.bridge = Conv_Down(self.out_dim * 24, self.out_dim * 16, act_fn, dropout_prob=0.5)
 
         # ~~~ Decoding Path ~~~~~~ #
-        self.deconv_1 = conv_decod_block(self.out_dim * 16, self.out_dim * 8, act_fn_2)
+        self.deconv_1 = depthwise_separable_deconv(self.out_dim * 16, self.out_dim * 8, act_fn_2)
         self.up_1 = Conv_Up(self.out_dim * 24, self.out_dim * 8, act_fn_2)
 
-        self.deconv_2 = conv_decod_block(self.out_dim * 8, self.out_dim * 4, act_fn_2)
+        self.deconv_2 = depthwise_separable_deconv(self.out_dim * 8, self.out_dim * 4, act_fn_2)
         self.up_2 = Conv_Up(self.out_dim * 16,  self.out_dim * 4, act_fn_2)
 
-        self.deconv_3 = conv_decod_block(self.out_dim * 4, self.out_dim * 2, act_fn_2)
+        self.deconv_3 = depthwise_separable_deconv(self.out_dim * 4, self.out_dim * 2, act_fn_2)
         self.up_3 = Conv_Up(self.out_dim * 8, self.out_dim * 2, act_fn_2)
 
-        self.deconv_4 = conv_decod_block(self.out_dim*2, self.out_dim, act_fn_2)
+        self.deconv_4 = depthwise_separable_deconv(self.out_dim*2, self.out_dim, act_fn_2)
         self.up_4 = Conv_Up(self.out_dim * 4, self.out_dim, act_fn_2)
 
-        self.out_1 = nn.Conv1d(self.out_dim, 2, kernel_size=3, stride=1, padding=1)
-        self.out_2 = nn.Conv1d(2, self.final_out_dim, kernel_size=3, stride=1, padding=1)
+        self.out_1 = depthwise_separable_conv(self.out_dim, 2, act_fn_2, kernel_size=3, stride=1, padding=1)
+        self.out_2 = depthwise_separable_conv(2, self.final_out_dim, nn.Sigmoid(), kernel_size=3, stride=1, padding=1)
 
-        self.sigmoid = nn.Sigmoid()
+        # self.sigmoid = nn.Sigmoid()
 
     def forward(self, input):
         # ~~~~~~ Encoding path ~~~~~~~  #
@@ -197,10 +197,9 @@ class Multi_Wav_UNet(nn.Module):
         up_4 = self.up_4(skip_4)
 
         out = self.out_1(up_4)
-        # 加一个rule?
         final_out = self.out_2(out)
 
-        return self.sigmoid(final_out)
+        return final_out
 
 
 # cpu版本测试
