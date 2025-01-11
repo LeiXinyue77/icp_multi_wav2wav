@@ -208,7 +208,7 @@ if __name__ == "__main__":
     num_classes = 1
     ngf = 16
 
-    model = Multi_Wav_UNet(input_nc=1, output_nc=num_classes, ngf=ngf).double().to('cpu')
+    model = Multi_Wav_UNet_SeparableConv(input_nc=1, output_nc=num_classes, ngf=ngf).double().to('cpu')
     # print("total parameter:" + str(netSize(model)))
     MRI = torch.randn(batch_size, 3, 1024).double().to('cpu')  # bz*modal*W*H     (bz,4,64,64)=>(bz,modal,T,1)
     predict = model(MRI)
