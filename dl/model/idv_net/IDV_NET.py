@@ -2,7 +2,7 @@ import numpy as np
 import onnx
 from torchsummary import torchsummary
 import netron
-from idv_blocks import *
+from dl.model.idv_net.idv_blocks import  *
 import math
 import torch
 
