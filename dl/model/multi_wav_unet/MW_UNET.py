@@ -123,10 +123,16 @@ class Multi_Wav_UNet(nn.Module):
         self.deconv_4 = conv_decod_block(self.out_dim*2, self.out_dim, act_fn_2)
         self.up_4 = Conv_Up(self.out_dim * 4, self.out_dim, act_fn_2)
 
-        self.out_1 = nn.Conv1d(self.out_dim, 2, kernel_size=3, stride=1, padding=1)
-        self.out_2 = nn.Conv1d(2, self.final_out_dim, kernel_size=3, stride=1, padding=1)
+        self.out_1 = nn.Sequential(
+            nn.Conv1d(self.out_dim, 2, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+        )
 
-        self.sigmoid = nn.Sigmoid()
+        self.final_out = nn.Sequential(
+            nn.Conv1d(2, self.final_out_dim, kernel_size=3, stride=1, padding=1),
+            nn.Sigmoid(),
+        )
+
 
     def forward(self, input):
         # ~~~~~~ Encoding path ~~~~~~~  #
@@ -143,8 +149,8 @@ class Multi_Wav_UNet(nn.Module):
 
         # -----  Second Level ----- ---
         input_2nd_0 = self.pool_1_0(down_1_0)  #
-        input_2nd_1 = self.pool_1_0(down_1_0)  # (n,32,512)
-        input_2nd_2 = self.pool_1_0(down_1_0)  # (n,32,512)
+        input_2nd_1 = self.pool_1_1(down_1_1)  # (n,32,512)
+        input_2nd_2 = self.pool_1_2(down_1_2)  # (n,32,512)
 
         down_2_0 = self.down_2_0(input_2nd_0)  # (n,64,512)
         down_2_1 = self.down_2_1(input_2nd_1)
@@ -153,8 +159,8 @@ class Multi_Wav_UNet(nn.Module):
         # -----  Third Level --------
         # Max-pool
         input_3rd_0 = self.pool_2_0(down_2_0)  # (n,64,256)
-        input_3rd_1 = self.pool_2_0(down_2_1)  # (n,64,256)
-        input_3rd_2 = self.pool_2_0(down_2_2)  # (n,64,256)
+        input_3rd_1 = self.pool_2_1(down_2_1)  # (n,64,256)
+        input_3rd_2 = self.pool_2_2(down_2_2)  # (n,64,256)
 
         down_3_0 = self.down_3_0(input_3rd_0)  # (n,128,256)
         down_3_1 = self.down_3_1(input_3rd_1)
@@ -163,8 +169,8 @@ class Multi_Wav_UNet(nn.Module):
         # -----  Fourth Level --------
         # Max-pool
         input_4th_0 = self.pool_3_0(down_3_0)  # (n,128,128)
-        input_4th_1 = self.pool_3_0(down_3_1)
-        input_4th_2 = self.pool_3_0(down_3_2)
+        input_4th_1 = self.pool_3_1(down_3_1)
+        input_4th_2 = self.pool_3_2(down_3_2)
 
         down_4_0 = self.down_4_0(input_4th_0)  # (n,256,128)
         down_4_1 = self.down_4_1(input_4th_1)
@@ -173,8 +179,8 @@ class Multi_Wav_UNet(nn.Module):
         # ----- Bridge -----
         # Max-pool
         down_4_0m = self.pool_4_0(down_4_0)  # (n,256,64)
-        down_4_1m = self.pool_4_0(down_4_1)
-        down_4_2m = self.pool_4_0(down_4_2)
+        down_4_1m = self.pool_4_1(down_4_1)
+        down_4_2m = self.pool_4_2(down_4_2)
 
         inputBridge = torch.cat((down_4_0m, down_4_1m, down_4_2m), dim=1)  # (n,768,64)
         bridge = self.bridge(inputBridge)  # (n,256,64)
@@ -196,18 +202,17 @@ class Multi_Wav_UNet(nn.Module):
         skip_4 = torch.cat((deconv_4, down_1_0, down_1_1, down_1_2), dim=1)
         up_4 = self.up_4(skip_4)
 
-        out = self.out_1(up_4)
-        # 加一个rule?
-        final_out = self.out_2(out)
+        out1 = self.out_1(up_4)
+        final_out = self.final_out(out1)
 
-        return self.sigmoid(final_out)
+        return final_out
 
 
 # cpu版本测试
 if __name__ == "__main__":
     batch_size = 1
     num_classes = 1
-    ngf = 16
+    ngf = 8
 
     model = Multi_Wav_UNet(input_nc=1, output_nc=num_classes, ngf=ngf).double().to('cpu')
     # print("total parameter:" + str(netSize(model)))

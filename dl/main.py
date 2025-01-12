@@ -10,7 +10,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 
 def main(
-        epoch: int = 100,
+        epoch: int = 200,
         batch_size: int = 512,
         path_to_save_model="result/save_model",
         path_to_save_loss="result/save_loss",
@@ -63,7 +63,7 @@ def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--epoch", type=int, default=100, help="Number of training epochs.")
+    parser.add_argument("--epoch", type=int, default=1000, help="Number of training epochs.")
     parser.add_argument("--batch_size", type=int, default=512, help="Batch size for DataLoader.")
     parser.add_argument("--path_to_save_model", type=str, default="result/save_model",
                         help="Path to save trained model.")

@@ -126,7 +126,15 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
         self.out_1 = depthwise_separable_conv(self.out_dim, 2, act_fn_2, kernel_size=3, stride=1, padding=1)
         self.out_2 = depthwise_separable_conv(2, self.final_out_dim, nn.Sigmoid(), kernel_size=3, stride=1, padding=1)
 
-        # self.sigmoid = nn.Sigmoid()
+        for m in self.modules():
+            if isinstance(m, nn.Conv1d):  # 修改为Conv1d
+                n = m.kernel_size[0] * m.out_channels  # 1D卷积只需要考虑kernel_size[0]和out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+                # init.xavier_uniform(m.weight.data)
+                # init.xavier_uniform(m.bias.data)
+            elif isinstance(m, nn.BatchNorm1d):  # 修改为BatchNorm1d
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
 
     def forward(self, input):
         # ~~~~~~ Encoding path ~~~~~~~  #
@@ -143,8 +151,8 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
 
         # -----  Second Level ----- ---
         input_2nd_0 = self.pool_1_0(down_1_0)  #
-        input_2nd_1 = self.pool_1_0(down_1_0)  # (n,32,512)
-        input_2nd_2 = self.pool_1_0(down_1_0)  # (n,32,512)
+        input_2nd_1 = self.pool_1_1(down_1_1)  # (n,32,512)
+        input_2nd_2 = self.pool_1_2(down_1_2)  # (n,32,512)
 
         down_2_0 = self.down_2_0(input_2nd_0)  # (n,64,512)
         down_2_1 = self.down_2_1(input_2nd_1)
@@ -153,8 +161,8 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
         # -----  Third Level --------
         # Max-pool
         input_3rd_0 = self.pool_2_0(down_2_0)  # (n,64,256)
-        input_3rd_1 = self.pool_2_0(down_2_1)  # (n,64,256)
-        input_3rd_2 = self.pool_2_0(down_2_2)  # (n,64,256)
+        input_3rd_1 = self.pool_2_1(down_2_1)  # (n,64,256)
+        input_3rd_2 = self.pool_2_2(down_2_2)  # (n,64,256)
 
         down_3_0 = self.down_3_0(input_3rd_0)  # (n,128,256)
         down_3_1 = self.down_3_1(input_3rd_1)
@@ -163,8 +171,8 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
         # -----  Fourth Level --------
         # Max-pool
         input_4th_0 = self.pool_3_0(down_3_0)  # (n,128,128)
-        input_4th_1 = self.pool_3_0(down_3_1)
-        input_4th_2 = self.pool_3_0(down_3_2)
+        input_4th_1 = self.pool_3_1(down_3_1)
+        input_4th_2 = self.pool_3_2(down_3_2)
 
         down_4_0 = self.down_4_0(input_4th_0)  # (n,256,128)
         down_4_1 = self.down_4_1(input_4th_1)
@@ -206,7 +214,7 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
 if __name__ == "__main__":
     batch_size = 1
     num_classes = 1
-    ngf = 16
+    ngf = 8
 
     model = Multi_Wav_UNet_SeparableConv(input_nc=1, output_nc=num_classes, ngf=ngf).double().to('cpu')
     # print("total parameter:" + str(netSize(model)))

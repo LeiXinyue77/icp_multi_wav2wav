@@ -2,9 +2,8 @@ import os
 import joblib
 import numpy as np
 import torch
-from dl.model.attention_u_net.AM_UNET import Attention_Multi_UNet
-from dl.model.idv_net.IDV_NET import IVD_Net_asym
 import matplotlib.pyplot as plt
+from dl.model.multi_wav_unet.mw_unet_separableConv import Multi_Wav_UNet_SeparableConv
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -12,18 +11,18 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 if __name__ == "__main__":
 
     # load the model
-    model = Attention_Multi_UNet(input_nc=1, output_nc=1, ngf=8).double().to(device)
+    model = Multi_Wav_UNet_SeparableConv(input_nc=1, output_nc=1, ngf=8).double().to(device)
     criterion = torch.nn.MSELoss()
-    path_to_save_model = "result/save_model/AM-UNET-MSE/fold2"
+    path_to_save_model = "dl/result/save_model/1_fold1/ckpt_best.pth"
     if os.path.isdir(path_to_save_model):
         checkpoint = torch.load(
-            f'{path_to_save_model}/ckpt_model_99.pth', map_location=device, weights_only=True)
+            f'{path_to_save_model}', map_location=device, weights_only=True)
         model.load_state_dict(checkpoint['net'])
     model.eval()
 
     # load the test data
     root_dir = 'data'
-    folders =['folder2']
+    folders =['folder1']
     for folder in folders:
         for root, dirs, files in os.walk(os.path.join(root_dir, folder)):
             for file in files:
