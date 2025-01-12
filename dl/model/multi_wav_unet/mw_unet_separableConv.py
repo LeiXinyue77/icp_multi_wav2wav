@@ -129,12 +129,9 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.Conv1d):  # 修改为Conv1d
                 n = m.kernel_size[0] * m.out_channels  # 1D卷积只需要考虑kernel_size[0]和out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-                # init.xavier_uniform(m.weight.data)
-                # init.xavier_uniform(m.bias.data)
-            elif isinstance(m, nn.BatchNorm1d):  # 修改为BatchNorm1d
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
+                nn.init.xavier_uniform_(m.weight.data)  # Correct weight initialization
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias.data)  # Initialize bias to zero
 
     def forward(self, input):
         # ~~~~~~ Encoding path ~~~~~~~  #

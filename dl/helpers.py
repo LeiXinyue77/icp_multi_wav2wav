@@ -8,8 +8,10 @@ import pandas as pd
 
 def log_loss(epoch, train_epoch_loss, val_epoch_loss, path_to_save_loss):
 
-    loss = [epoch, train_epoch_loss, val_epoch_loss]
+    loss = [epoch, train_epoch_loss, path_to_save_loss]
     data = pd.DataFrame([loss])
+    if not os.path.isdir(path_to_save_loss):
+        os.mkdir(path_to_save_loss)
     data.to_csv(f'{path_to_save_loss}/loss.csv', mode='a',
                 header=False, index=False)
 

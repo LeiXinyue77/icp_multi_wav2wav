@@ -11,7 +11,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 def main(
         epoch: int = 100,
-        batch_size: int = 1024,
+        batch_size: int = 512,
         path_to_save_model="result/save_model",
         path_to_save_loss="result/save_loss",
         device="cuda:0",
@@ -45,8 +45,6 @@ def main(
         # Generate paths for saving models and loss for each fold
         fold_model_path = os.path.join(path_to_save_model, f"fold{fold}")
         fold_loss_path = os.path.join(path_to_save_loss, f"fold{fold}")
-        os.makedirs(fold_model_path, exist_ok=True)
-        os.makedirs(fold_loss_path, exist_ok=True)
 
         # Start training for this fold
         # resume = fold == 1    # Resume training for the first fold
@@ -64,7 +62,7 @@ def main(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--epoch", type=int, default=100, help="Number of training epochs.")
-    parser.add_argument("--batch_size", type=int, default=1024, help="Batch size for DataLoader.")
+    parser.add_argument("--batch_size", type=int, default=512, help="Batch size for DataLoader.")
     parser.add_argument("--path_to_save_model", type=str, default="result/save_model",
                         help="Path to save trained model.")
     parser.add_argument("--path_to_save_loss", type=str, default="result/save_loss", help="Path to save loss "
