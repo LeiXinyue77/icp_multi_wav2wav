@@ -123,8 +123,8 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
         self.deconv_4 = depthwise_separable_deconv(self.out_dim*2, self.out_dim, act_fn_2)
         self.up_4 = Conv_Up(self.out_dim * 4, self.out_dim, act_fn_2)
 
-        self.out_1 = depthwise_separable_conv(self.out_dim, 2, act_fn_2, kernel_size=3, stride=1, padding=1)
-        self.out_2 = depthwise_separable_conv(2, self.final_out_dim, act_fn_2, kernel_size=3, stride=1, padding=1)
+        self.out = nn.Conv1d(self.out_dim, self.out_dim, kernel_size=3, stride=1, padding=1, groups=self.out_dim)
+        self.final_out = nn.Conv1d(self.out_dim, self.final_out_dim, kernel_size=1)
 
         for m in self.modules():
             if isinstance(m, nn.Conv1d):  # 修改为Conv1d
@@ -204,8 +204,7 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
         skip_4 = torch.cat((deconv_4, down_1_0, down_1_1, down_1_2), dim=1)
         up_4 = self.up_4(skip_4)
 
-        out = self.out_1(up_4)
-        final_out = self.out_2(out)
+        final_out = self.out(up_4)
 
         return final_out
 
