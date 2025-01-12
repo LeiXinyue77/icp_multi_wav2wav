@@ -124,7 +124,7 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
         self.up_4 = Conv_Up(self.out_dim * 4, self.out_dim, act_fn_2)
 
         self.out_1 = depthwise_separable_conv(self.out_dim, 2, act_fn_2, kernel_size=3, stride=1, padding=1)
-        self.out_2 = depthwise_separable_conv(2, self.final_out_dim, nn.Sigmoid(), kernel_size=3, stride=1, padding=1)
+        self.out_2 = depthwise_separable_conv(2, self.final_out_dim, act_fn_2, kernel_size=3, stride=1, padding=1)
 
         for m in self.modules():
             if isinstance(m, nn.Conv1d):  # 修改为Conv1d
