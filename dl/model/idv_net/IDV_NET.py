@@ -106,9 +106,9 @@ class IVD_Net_asym(nn.Module):
 
     def __init__(self, input_nc, output_nc, ngf):
         super(IVD_Net_asym, self).__init__()
-        print('~' * 55)
-        print(' ----- Creating FUSION_NET HD (Assymetric) network...')
-        print('~' * 55)
+        # print('~' * 55)
+        # print(' ----- Creating FUSION_NET HD (Assymetric) network...')
+        # print('~' * 55)
 
         self.in_dim = input_nc  # 1
         self.out_dim = ngf  # 32

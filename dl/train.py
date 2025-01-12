@@ -1,6 +1,8 @@
 import logging
 from torch.optim.lr_scheduler import StepLR
 from tqdm import tqdm
+
+from dl.model.idv_net.IDV_NET import IVD_Net_asym
 from dl.model.multi_wav_unet.MW_UNET import Multi_Wav_UNet
 from dl.model.multi_wav_unet.mw_unet_separableConv import Multi_Wav_UNet_SeparableConv
 from helpers import *
@@ -19,7 +21,7 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
     # 初始化模型和优化器
     start_epoch = 1
     device = torch.device(device)
-    model = Multi_Wav_UNet(input_nc=1, output_nc=1, ngf=8).double().to(device)
+    model = IVD_Net_asym(input_nc=1, output_nc=1, ngf=8).double().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
     # # 学习率调度器
