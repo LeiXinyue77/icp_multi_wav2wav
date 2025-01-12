@@ -181,8 +181,8 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
         # ----- Bridge -----
         # Max-pool
         down_4_0m = self.pool_4_0(down_4_0)  # (n,256,64)
-        down_4_1m = self.pool_4_0(down_4_1)
-        down_4_2m = self.pool_4_0(down_4_2)
+        down_4_1m = self.pool_4_1(down_4_1)
+        down_4_2m = self.pool_4_2(down_4_2)
 
         inputBridge = torch.cat((down_4_0m, down_4_1m, down_4_2m), dim=1)  # (n,768,64)
         bridge = self.bridge(inputBridge)  # (n,256,64)

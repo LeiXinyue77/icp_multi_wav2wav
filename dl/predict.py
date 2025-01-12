@@ -13,10 +13,10 @@ if __name__ == "__main__":
     # load the model
     model = Multi_Wav_UNet_SeparableConv(input_nc=1, output_nc=1, ngf=8).double().to(device)
     criterion = torch.nn.MSELoss()
-    path_to_save_model = "dl/result/save_model/2_fold1/ckpt_best.pth"
+    path_to_save_model = "dl/result/save_model/fold1/ckpt_best.pth"
     if os.path.isdir(path_to_save_model):
         checkpoint = torch.load(
-            f'{path_to_save_model}', map_location=device, weights_only=True)
+            path_to_save_model, map_location=device, weights_only=True)
         model.load_state_dict(checkpoint['net'])
     model.eval()
 

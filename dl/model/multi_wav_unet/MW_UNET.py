@@ -123,16 +123,17 @@ class Multi_Wav_UNet(nn.Module):
         self.deconv_4 = conv_decod_block(self.out_dim*2, self.out_dim, act_fn_2)
         self.up_4 = Conv_Up(self.out_dim * 4, self.out_dim, act_fn_2)
 
-        self.out_1 = nn.Sequential(
-            nn.Conv1d(self.out_dim, 2, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-        )
+        self.final_out = nn.Conv1d(self.out_dim, self.final_out_dim, kernel_size=3, stride=1, padding=1)
 
-        self.final_out = nn.Sequential(
-            nn.Conv1d(2, self.final_out_dim, kernel_size=3, stride=1, padding=1),
-            nn.Sigmoid(),
-        )
-
+        for m in self.modules():
+            if isinstance(m, nn.Conv1d):  # 修改为Conv1d
+                n = m.kernel_size[0] * m.out_channels  # 1D卷积只需要考虑kernel_size[0]和out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+                # init.xavier_uniform(m.weight.data)
+                # init.xavier_uniform(m.bias.data)
+            elif isinstance(m, nn.BatchNorm1d):  # 修改为BatchNorm1d
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
 
     def forward(self, input):
         # ~~~~~~ Encoding path ~~~~~~~  #
@@ -179,8 +180,8 @@ class Multi_Wav_UNet(nn.Module):
         # ----- Bridge -----
         # Max-pool
         down_4_0m = self.pool_4_0(down_4_0)  # (n,256,64)
-        down_4_1m = self.pool_4_1(down_4_1)
-        down_4_2m = self.pool_4_2(down_4_2)
+        down_4_1m = self.pool_4_0(down_4_1)
+        down_4_2m = self.pool_4_0(down_4_2)
 
         inputBridge = torch.cat((down_4_0m, down_4_1m, down_4_2m), dim=1)  # (n,768,64)
         bridge = self.bridge(inputBridge)  # (n,256,64)
@@ -202,8 +203,7 @@ class Multi_Wav_UNet(nn.Module):
         skip_4 = torch.cat((deconv_4, down_1_0, down_1_1, down_1_2), dim=1)
         up_4 = self.up_4(skip_4)
 
-        out1 = self.out_1(up_4)
-        final_out = self.final_out(out1)
+        final_out = self.final_out(up_4)
 
         return final_out
 
