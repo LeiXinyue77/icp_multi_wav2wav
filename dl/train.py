@@ -23,10 +23,10 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
     # # 学习率调度器
-    # # Option 1: StepLR (每隔10个epoch，学习率衰减0.1倍)
+    # Option 1: StepLR (每隔10个epoch，学习率衰减0.1倍)
     # scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
 
-    criterion = torch.nn.MSELoss()
+    criterion = torch.nn.L1Loss()
     min_val_loss = float('inf')
 
     # 断点续训，加载模型
@@ -89,7 +89,7 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
 
         # 更新学习率（适用于 StepLR 和 ExponentialLR）
         # scheduler.step()
-        # 记录训练和验证损失
+         # 记录训练和验证损失
         logger.info(f"Epoch: {epoch}, Training loss: {train_loss:.4f}, Validation loss: {val_loss:.4f}, LR: {optimizer.param_groups[0]['lr']:.6f}")
         log_loss(epoch, train_loss, val_loss, path_to_save_loss)
 

@@ -2,7 +2,7 @@ import numpy as np
 import onnx
 from torchsummary import torchsummary
 import netron
-from dl.model.Blocks import *
+from idv_blocks import *
 import math
 import torch
 
@@ -177,6 +177,7 @@ class IVD_Net_asym(nn.Module):
         self.up_4 = Conv_residual_conv_Inception_Dilation(self.out_dim, self.out_dim, act_fn_2)
 
         self.out = nn.Conv1d(self.out_dim, self.final_out_dim, kernel_size=3, stride=1, padding=1)
+        self.sigmoid = nn.Sigmoid()
 
         # Params initialization
 
@@ -230,8 +231,8 @@ class IVD_Net_asym(nn.Module):
         # -----  Third Level --------
         # Max-pool
         down_2_0m = self.pool_2_0(down_2_0)    # (n,64,256)
-        down_2_1m = self.pool_2_0(down_2_1)    # (n,64,256)
-        down_2_2m = self.pool_2_0(down_2_2)    # (n,64,256)
+        down_2_1m = self.pool_2_1(down_2_1)    # (n,64,256)
+        down_2_2m = self.pool_2_2(down_2_2)    # (n,64,256)
 
         input_3rd_0 = torch.cat((down_2_0m, down_2_1m, down_2_2m), dim=1)   #(n,192,256)
         input_3rd_0 = torch.cat((input_3rd_0, croppCenter(input_2nd_0, input_3rd_0.shape)), dim=1)  #(n,288,256)
@@ -250,8 +251,8 @@ class IVD_Net_asym(nn.Module):
 
         # Max-pool
         down_3_0m = self.pool_3_0(down_3_0)   #(n,128,128)
-        down_3_1m = self.pool_3_0(down_3_1)
-        down_3_2m = self.pool_3_0(down_3_2)
+        down_3_1m = self.pool_3_1(down_3_1)
+        down_3_2m = self.pool_3_2(down_3_2)
 
         input_4th_0 = torch.cat((down_3_0m, down_3_1m, down_3_2m), dim=1)   #(n,384,128)
         input_4th_0 = torch.cat((input_4th_0, croppCenter(input_3rd_0, input_4th_0.shape)), dim=1)   #(n,672,128)
@@ -292,16 +293,15 @@ class IVD_Net_asym(nn.Module):
         up_4 = self.up_4(skip_4)  #(n,32,1024)
         out = self.out(up_4)  #(n,1,1024)
 
-        # Last output
-        # return F.softmax(self.out(up_4))
-        return out   #(n,1,1024)
+        final_out = self.sigmoid(out)
+        return final_out   #(n,1,1024)
 
 
 # cpu版本测试
 if __name__ == "__main__":
-    batch_size = 2
+    batch_size = 32
     num_classes = 1
-    ngf = 32
+    ngf = 8
 
     model = IVD_Net_asym(input_nc=1, output_nc=num_classes, ngf=ngf).double().to('cuda:0')
     # print("total parameter:" + str(netSize(model)))
