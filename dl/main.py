@@ -63,7 +63,7 @@ def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--epoch", type=int, default=1000, help="Number of training epochs.")
+    parser.add_argument("--epoch", type=int, default=200, help="Number of training epochs.")
     parser.add_argument("--batch_size", type=int, default=512, help="Batch size for DataLoader.")
     parser.add_argument("--path_to_save_model", type=str, default="result/save_model",
                         help="Path to save trained model.")
