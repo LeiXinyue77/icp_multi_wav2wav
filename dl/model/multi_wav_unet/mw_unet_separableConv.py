@@ -204,7 +204,8 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
         skip_4 = torch.cat((deconv_4, down_1_0, down_1_1, down_1_2), dim=1)
         up_4 = self.up_4(skip_4)
 
-        final_out = self.out(up_4)
+        out = self.out(up_4)
+        final_out = self.final_out(out)
 
         return final_out
 
