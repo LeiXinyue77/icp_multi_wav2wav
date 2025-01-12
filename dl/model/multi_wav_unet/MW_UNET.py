@@ -123,7 +123,8 @@ class Multi_Wav_UNet(nn.Module):
         self.deconv_4 = conv_decod_block(self.out_dim*2, self.out_dim, act_fn_2)
         self.up_4 = Conv_Up(self.out_dim * 4, self.out_dim, act_fn_2)
 
-        self.final_out = nn.Conv1d(self.out_dim, self.final_out_dim, kernel_size=3, stride=1, padding=1)
+        self.out = nn.Conv1d(self.out_dim, self.final_out_dim, kernel_size=3, stride=1, padding=1)
+        self.sigmoid = nn.Sigmoid()
 
         for m in self.modules():
             if isinstance(m, nn.Conv1d):  # 修改为Conv1d
@@ -203,7 +204,8 @@ class Multi_Wav_UNet(nn.Module):
         skip_4 = torch.cat((deconv_4, down_1_0, down_1_1, down_1_2), dim=1)
         up_4 = self.up_4(skip_4)
 
-        final_out = self.final_out(up_4)
+        out = self.out(up_4)
+        final_out = self.sigmoid(out)
 
         return final_out
 

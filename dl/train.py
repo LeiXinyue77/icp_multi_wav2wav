@@ -19,7 +19,7 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
     # 初始化模型和优化器
     start_epoch = 1
     device = torch.device(device)
-    model = Multi_Wav_UNet_SeparableConv(input_nc=1, output_nc=1, ngf=8).double().to(device)
+    model = Multi_Wav_UNet(input_nc=1, output_nc=1, ngf=8).double().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
     # # 学习率调度器

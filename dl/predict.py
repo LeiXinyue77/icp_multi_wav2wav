@@ -3,6 +3,8 @@ import joblib
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
+
+from dl.model.multi_wav_unet.MW_UNET import Multi_Wav_UNet
 from dl.model.multi_wav_unet.mw_unet_separableConv import Multi_Wav_UNet_SeparableConv
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
@@ -11,7 +13,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 if __name__ == "__main__":
 
     # load the model
-    model = Multi_Wav_UNet_SeparableConv(input_nc=1, output_nc=1, ngf=8).double().to(device)
+    model = Multi_Wav_UNet(input_nc=1, output_nc=1, ngf=8).double().to(device)
     criterion = torch.nn.MSELoss()
     path_to_save_model = "dl/result/save_model/fold1/ckpt_best.pth"
     if os.path.isdir(path_to_save_model):
