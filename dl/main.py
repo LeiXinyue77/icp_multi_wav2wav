@@ -18,7 +18,7 @@ def main(
         start_fold=1,
 ):
     # 设置随机数种子
-    setup_seed(99)
+    setup_seed(22)
     # 初始化设备
     device = torch.device(device if torch.cuda.is_available() and "cuda" in device else "cpu")
     print(f"=================================== Device: {device} ================================================")
