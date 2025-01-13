@@ -2,10 +2,27 @@ import logging
 import os
 from tqdm import tqdm
 import torch
+import torch.nn.functional as F
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from dl.model.multi_wav_unet.mw_unet_separableConv import Multi_Wav_UNet_SeparableConv
 from helpers import *
-from utils.plot import plot_signals
+
+
+
+class LogCosineLoss(torch.nn.Module):
+    def __init__(self):
+        super(LogCosineLoss, self).__init__()
+
+    def forward(self, pred, target):
+        # 计算预测和目标之间的余弦相似度
+        cos_sim = F.cosine_similarity(pred, target, dim=-1)  # 计算余弦相似度
+        # 防止 log(0) 出现负无穷的问题
+        cos_sim = torch.clamp(cos_sim, min=1e-6)
+        # 对余弦相似度取对数
+        log_cos_sim = torch.log(cos_sim)
+        # 返回对数余弦相似度的负值（因为通常优化目标是最小化损失）
+        return -torch.mean(log_cos_sim)
+
 
 def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, device, resume):
     # 配置日志记录
@@ -20,12 +37,13 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
     start_epoch = 1
     device = torch.device(device)
     model = Multi_Wav_UNet_SeparableConv(input_nc=1, output_nc=1, ngf=8).double().to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
     # CosineAnnealingWarmRestarts 学习率调度器
     scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=1e-6)
 
-    criterion = torch.nn.L1Loss()
+    # 使用Log-Cosine Loss
+    criterion = LogCosineLoss()
     min_val_loss = float('inf')
 
     # 断点续训，加载模型
