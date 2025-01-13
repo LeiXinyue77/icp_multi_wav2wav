@@ -39,7 +39,7 @@ def plot_pred_signals(signals, titles, suptitle):
 if __name__ == "__main__":
 
     # load the model
-    model = IVD_Net_asym(input_nc=1, output_nc=1, ngf=8).double().to(device)
+    model = Multi_Wav_UNet_SeparableConv(input_nc=1, output_nc=1, ngf=8).double().to(device)
     criterion = torch.nn.L1Loss()
     path_to_save_model = "dl/result/save_model/fold1/ckpt_model_10.pth"
     if os.path.isdir(path_to_save_model):
@@ -82,6 +82,12 @@ if __name__ == "__main__":
                         plot_pred_signals(signals_before_normalization, ['ABP', 'PPG', 'ECG', 'Pred ICP vs Target ICP'],
                                           suptitle=f"{file} Signals Before inverse normalization")
                         print("Before")
+
+
+                        # 仅绘制pred和target的信号
+                        signals = np.column_stack((pred, target))
+                        plot_signals(signals, ['Predict ICP', 'Target ICP'], title=f"{file} Predict vs Target ICP")
+                        print("Only Pred and Target")
 
                         # 2. 反归一化
                         pred = pred * npy_data_range[0] + npy_data_min[0]

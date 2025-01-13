@@ -2,7 +2,7 @@ import logging
 from tqdm import tqdm
 from dl.model.multi_wav_unet.mw_unet_separableConv import Multi_Wav_UNet_SeparableConv
 from helpers import *
-
+from utils.plot import plot_signals
 
 
 def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, device, resume):
@@ -44,6 +44,15 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
         with (tqdm(total=len(train_dl), desc=f"Epoch {epoch}/{train_epoch} [Training]", leave=True, unit="it",
                    unit_scale=False) as train_bar):
             for batch_idx, (info, _input, target)in enumerate(train_dl):  # for each data set
+
+                # input_numpy = _input.cpu().detach().numpy()  # 将张量转为 numpy 数组
+                # target_numpy = target.cpu().detach().numpy()
+                # for i in range(len(input_numpy)):
+                #     plot_signals(input_numpy[i], ["abp", "ppg", "ecg"], title="Input")
+                #     print(f"Input{i}")
+                #     plot_signals(target_numpy[i], ["icp"], title="Target")
+                #     print(f"Target{i}")
+
                 optimizer.zero_grad()
                 src = _input.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
                 tgt = target.permute(0, 2, 1)  # torch.Size([batch_size,n_features,n_samples])

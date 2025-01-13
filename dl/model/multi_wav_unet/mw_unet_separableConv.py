@@ -1,9 +1,12 @@
+import numpy as np
 import onnx
 from torchsummary import torchsummary
 import netron
 from dl.model.Blocks import *
 import math
 import torch
+
+from utils.plot import plot_signals
 
 
 class Conv_Down(nn.Module):
@@ -112,7 +115,7 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
 
         # ~~~ Decoding Path ~~~~~~ #
         self.deconv_1 = depthwise_separable_deconv(self.out_dim * 16, self.out_dim * 8, act_fn_2)
-        self.up_1 = Conv_Up(self.out_dim * 24, self.out_dim * 8, act_fn_2)
+        self.up_1 = Conv_Up(self.out_dim * 32, self.out_dim * 8, act_fn_2)
 
         self.deconv_2 = depthwise_separable_deconv(self.out_dim * 8, self.out_dim * 4, act_fn_2)
         self.up_2 = Conv_Up(self.out_dim * 16,  self.out_dim * 4, act_fn_2)
@@ -125,6 +128,7 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
 
         self.out = nn.Conv1d(self.out_dim, self.out_dim, kernel_size=3, stride=1, padding=1, groups=self.out_dim)
         self.final_out = nn.Conv1d(self.out_dim, self.final_out_dim, kernel_size=1)
+        self.sigmoid = nn.Sigmoid()
 
         for m in self.modules():
             if isinstance(m, nn.Conv1d):  # 修改为Conv1d
@@ -186,7 +190,7 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
 
         # ~~~~~~ Decoding path ~~~~~~~  #
         deconv_1 = self.deconv_1(bridge)
-        skip_1 = torch.cat((deconv_1, down_4_0, down_4_1 + down_4_2), dim=1)
+        skip_1 = torch.cat((deconv_1, down_4_0, down_4_1, down_4_2), dim=1)
         up_1 = self.up_1(skip_1)
 
         deconv_2 = self.deconv_2(up_1)
@@ -204,7 +208,7 @@ class Multi_Wav_UNet_SeparableConv(nn.Module):
         out = self.out(up_4)
         final_out = self.final_out(out)
 
-        return final_out
+        return self.sigmoid(final_out)
 
 
 # cpu版本测试
