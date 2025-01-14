@@ -106,7 +106,8 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
         # scheduler.step(epoch)
 
         # 记录训练和验证损失
-        logger.info(f"Epoch: {epoch}, Training loss: {train_loss:.4f}, Validation loss: {val_loss:.4f}, LR: {optimizer.param_groups[0]['lr']:.6f}")
+        logger.info(f"Epoch: {epoch}, Train_loss: {train_loss:.4f}, Val_loss: {val_loss:.4f}, "
+                    f"LR: {optimizer.param_groups[0]['lr']:.6f}")
         log_loss(epoch, train_loss, val_loss, path_to_save_loss)
 
         # 如果当前验证损失较小，则保存最优模型
