@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from dl.model.multi_wav_unet.mw_unet_separableConv import Multi_Wav_UNet_SeparableConv
+from dl.model.wav_unet.W2W_UNET import UNet
 from helpers import *
 
 
@@ -36,14 +37,16 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
     # 初始化模型和优化器
     start_epoch = 1
     device = torch.device(device)
-    model = Multi_Wav_UNet_SeparableConv(input_nc=1, output_nc=1, ngf=8).double().to(device)
+    model = UNet(ngf=8).double().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
     # CosineAnnealingWarmRestarts 学习率调度器
-    scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=1e-6)
+    # scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2, eta_min=1e-6)
 
     # 使用Log-Cosine Loss
-    criterion = LogCosineLoss()
+    # criterion = LogCosineLoss()
+    # 使用 MAE Loss
+    criterion = torch.nn.L1Loss()
     min_val_loss = float('inf')
 
     # 断点续训，加载模型
@@ -100,7 +103,7 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
             val_loss /= len(val_dl)
 
         # 更新学习率（CosineAnnealingWarmRestarts 会自动调整）
-        scheduler.step(epoch)
+        # scheduler.step(epoch)
 
         # 记录训练和验证损失
         logger.info(f"Epoch: {epoch}, Training loss: {train_loss:.4f}, Validation loss: {val_loss:.4f}, LR: {optimizer.param_groups[0]['lr']:.6f}")

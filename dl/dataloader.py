@@ -49,7 +49,7 @@ class IcpDataset(Dataset):
 
         # input/target of shape: [n_samples, n_features].
         info = self.info[idx]  # 保持为字符串
-        _input = self.data[idx][:, 1:4]
+        _input = self.data[idx][:, 1].reshape(-1, 1)
         target = self.data[idx][:, 0].reshape(-1, 1)
 
         # Convert to tensors and move to CUDA
@@ -69,6 +69,6 @@ if __name__ == "__main__":
     train_dataset = IcpDataset(folders, root_dir, device="cuda:0")
     train_dataloader = DataLoader(train_dataset, batch_size=512, shuffle=True)
     for i, (info, _input, target) in enumerate(train_dataloader):
-        plot_signals(_input[0].cpu().numpy(), ['abp', 'ppg', 'ecg'], title="Input")
+        plot_signals(_input[0].cpu().numpy(), ['abp'], title="Input")
         plot_signals(target[0].cpu().numpy(), ['icp'], title="Target")
         print(f"Info: {info}, Input shape: {_input.shape}, Target shape: {target.shape}")
