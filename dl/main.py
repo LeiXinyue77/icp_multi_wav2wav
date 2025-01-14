@@ -11,7 +11,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 def main(
         epoch: int = 100,
-        batch_size: int = 2048,
+        batch_size: int = 32,
         path_to_save_model="result/save_model",
         path_to_save_loss="result/save_loss",
         device="cuda:0",
