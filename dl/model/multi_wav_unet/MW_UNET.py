@@ -112,7 +112,7 @@ class Multi_Wav_UNet(nn.Module):
 
         # ~~~ Decoding Path ~~~~~~ #
         self.deconv_1 = conv_decod_block(self.out_dim * 16, self.out_dim * 8, act_fn_2)
-        self.up_1 = Conv_Up(self.out_dim * 24, self.out_dim * 8, act_fn_2)
+        self.up_1 = Conv_Up(self.out_dim * 32, self.out_dim * 8, act_fn_2)
 
         self.deconv_2 = conv_decod_block(self.out_dim * 8, self.out_dim * 4, act_fn_2)
         self.up_2 = Conv_Up(self.out_dim * 16,  self.out_dim * 4, act_fn_2)
@@ -189,7 +189,7 @@ class Multi_Wav_UNet(nn.Module):
 
         # ~~~~~~ Decoding path ~~~~~~~  #
         deconv_1 = self.deconv_1(bridge)
-        skip_1 = torch.cat((deconv_1, down_4_0, down_4_1 + down_4_2), dim=1)
+        skip_1 = torch.cat((deconv_1, down_4_0, down_4_1, down_4_2), dim=1)
         up_1 = self.up_1(skip_1)
 
         deconv_2 = self.deconv_2(up_1)
@@ -205,9 +205,9 @@ class Multi_Wav_UNet(nn.Module):
         up_4 = self.up_4(skip_4)
 
         out = self.out(up_4)
-        final_out = self.sigmoid(out)
+        # final_out = self.sigmoid(out)
 
-        return final_out
+        return out
 
 
 # cpu版本测试
@@ -237,3 +237,5 @@ if __name__ == "__main__":
     onnx.save(onnx.shape_inference.infer_shapes(onnx_model), modelFile)
 
     netron.start(modelFile)
+
+

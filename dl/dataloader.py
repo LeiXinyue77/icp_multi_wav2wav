@@ -3,7 +3,6 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 import os
 import torch
-
 from utils.plot import plot_signals
 
 
@@ -28,9 +27,6 @@ class IcpDataset(Dataset):
                         file_path = os.path.join(root, file)
                         try:
                             npy_data = np.load(file_path)
-                            # print(npy_data.shape)
-                            # 归一化npy_data到[0, 1]
-                            # 按列归一化到 [0, 1]
                             npy_data_min = np.min(npy_data, axis=0)  # 每列的最小值
                             npy_data_max = np.max(npy_data, axis=0)  # 每列的最大值
                             npy_data_range = np.where(npy_data_max - npy_data_min == 0, 1, npy_data_max - npy_data_min)
@@ -49,7 +45,7 @@ class IcpDataset(Dataset):
 
         # input/target of shape: [n_samples, n_features].
         info = self.info[idx]  # 保持为字符串
-        _input = self.data[idx][:, 1].reshape(-1, 1)
+        _input = self.data[idx][:, 1:4]
         target = self.data[idx][:, 0].reshape(-1, 1)
 
         # Convert to tensors and move to CUDA
@@ -69,6 +65,6 @@ if __name__ == "__main__":
     train_dataset = IcpDataset(folders, root_dir, device="cuda:0")
     train_dataloader = DataLoader(train_dataset, batch_size=512, shuffle=True)
     for i, (info, _input, target) in enumerate(train_dataloader):
-        plot_signals(_input[0].cpu().numpy(), ['abp'], title="Input")
-        plot_signals(target[0].cpu().numpy(), ['icp'], title="Target")
+        plot_signals(_input[i].cpu().numpy(), ['abp','ppg','ecg'], title="Input")
+        plot_signals(target[i].cpu().numpy(), ['icp'], title="Target")
         print(f"Info: {info}, Input shape: {_input.shape}, Target shape: {target.shape}")

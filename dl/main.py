@@ -1,5 +1,5 @@
 import argparse
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from train import Train
 from helpers import *
 import torch
@@ -7,6 +7,8 @@ from dl.dataloader import IcpDataset
 
 # 设置 CUDA 设备
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+torch.backends.cudnn.deterministic = True  # 确保每次运行产生相同的结果
+torch.backends.cudnn.benchmark = False    # 禁用 cuDNN 自动优化，确保确定性
 
 
 def main(
@@ -24,17 +26,22 @@ def main(
     print(f"=================================== Device: {device} ================================================")
     all_folders = ["folder1", "folder2", "folder3", "folder4", "folder5"]
     fold = start_fold
-    for val_folder in all_folders:
+    for test_folder in all_folders:
         # For each fold, the validation folder is different; the rest are training folders
         print(f"=================================== Start Training Fold {fold} "
               f"=========================================")
 
         # Prepare training and validation datasets
-        train_folder = [folder for folder in all_folders if folder != val_folder]
-        print(f"Training folders: {train_folder}, Validation folder: {val_folder}")
+        train_folder = [folder for folder in all_folders if folder != test_folder]
+        print(f"Training folders: {train_folder}, test folder: {test_folder}")
 
-        train_dataset = IcpDataset(folders=train_folder, root_dir='data',device=device)
-        val_dataset = IcpDataset(folders=[val_folder], root_dir='data',device=device)
+        dataset = IcpDataset(folders=train_folder, root_dir='data',device=device)
+        print(f"Dataset size: {len(dataset)}")
+
+        train_size = int(0.8 * len(dataset))
+        val_size = len(dataset) - train_size
+        train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+
         print(f"Training dataset size: {len(train_dataset)}, Validation dataset size: {len(val_dataset)}")
 
         # DataLoader for the fold
@@ -62,7 +69,7 @@ def main(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--epoch", type=int, default=100, help="Number of training epochs.")
-    parser.add_argument("--batch_size", type=int, default=2048, help="Batch size for DataLoader.")
+    parser.add_argument("--batch_size", type=int, default=32, help="Batch size for DataLoader.")
     parser.add_argument("--path_to_save_model", type=str, default="result/save_model",
                         help="Path to save trained model.")
     parser.add_argument("--path_to_save_loss", type=str, default="result/save_loss", help="Path to save loss "
