@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     # load the model
     model = Multi_Wav_UNet(input_nc=1, output_nc=1, ngf=8).double().to(device)
-    path_to_save_model = "result/save_model/20250117_1_multi_wav_unet/fold1/ckpt_best.pth"
+    path_to_save_model = "result/save_model/fold1/ckpt_best.pth"
     if os.path.isdir(path_to_save_model):
         checkpoint = torch.load(
             path_to_save_model, map_location=device, weights_only=True)
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     # load the test data
     root_dir = 'data'
-    folders = ['folder2']
+    folders = ['folder1']
     for folder in folders:
         for root, dirs, files in os.walk(os.path.join(root_dir, folder)):
             for file in files:

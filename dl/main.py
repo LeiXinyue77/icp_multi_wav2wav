@@ -12,7 +12,7 @@ torch.backends.cudnn.benchmark = False    # 禁用 cuDNN 自动优化，确保�
 
 
 def main(
-        epoch: int = 200,
+        epoch: int = 500,
         batch_size: int = 32,
         path_to_save_model="result/save_model",
         path_to_save_loss="result/save_loss",
@@ -26,22 +26,24 @@ def main(
     print(f"=================================== Device: {device} ================================================")
     all_folders = ["folder1", "folder2", "folder3", "folder4", "folder5"]
     fold = start_fold
-    for test_folder in all_folders:
+    for val_folder in all_folders:
         # For each fold, the validation folder is different; the rest are training folders
         print(f"=================================== Start Training Fold {fold} "
               f"=========================================")
 
         # Prepare training and validation datasets
-        train_folder = [folder for folder in all_folders if folder != test_folder]
-        print(f"Training folders: {train_folder}, test folder: {test_folder}")
+        train_folder = [folder for folder in all_folders if folder != val_folder]
+        print(f"Training folders: {train_folder}, test folder: {val_folder}")
 
-        dataset = IcpDataset(folders=train_folder, root_dir='data',device=device)
-        print(f"Dataset size: {len(dataset)}")
+        # dataset = IcpDataset(folders=train_folder, root_dir='data',device=device)
+        # print(f"Dataset size: {len(dataset)}")
+        #
+        # train_size = int(0.8 * len(dataset))
+        # val_size = len(dataset) - train_size
+        # train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
-        train_size = int(0.8 * len(dataset))
-        val_size = len(dataset) - train_size
-        train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-
+        train_dataset = IcpDataset(folders=train_folder, root_dir='data', device=device)
+        val_dataset = IcpDataset(folders=[val_folder], root_dir='data', device=device)
         print(f"Training dataset size: {len(train_dataset)}, Validation dataset size: {len(val_dataset)}")
 
         # DataLoader for the fold
@@ -64,14 +66,13 @@ def main(
 
         # Increment fold count
         fold += 1
-
         if fold > 1:
             break
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--epoch", type=int, default=200, help="Number of training epochs.")
+    parser.add_argument("--epoch", type=int, default=500, help="Number of training epochs.")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size for DataLoader.")
     parser.add_argument("--path_to_save_model", type=str, default="result/save_model",
                         help="Path to save trained model.")

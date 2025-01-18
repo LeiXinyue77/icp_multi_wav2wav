@@ -124,7 +124,8 @@ class Multi_Wav_UNet(nn.Module):
         self.up_4 = Conv_Up(self.out_dim * 4, self.out_dim, act_fn_2)
 
         self.out = nn.Conv1d(self.out_dim, self.final_out_dim, kernel_size=3, stride=1, padding=1)
-        self.sigmoid = nn.Sigmoid()
+        self.linear = nn.Linear(1024, 1024)
+        # self.sigmoid = nn.Sigmoid()
 
         for m in self.modules():
             if isinstance(m, nn.Conv1d):  # 修改为Conv1d
@@ -206,8 +207,9 @@ class Multi_Wav_UNet(nn.Module):
 
         out = self.out(up_4)
         # final_out = self.sigmoid(out)
+        final_out = self.linear(out)
 
-        return out
+        return final_out
 
 
 # cpu版本测试
