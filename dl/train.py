@@ -28,6 +28,7 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
     criterion = CombinedWaveLoss(alpha=0.5)  # alpha=0.5 表示值和形状各占 50%
+    mse_criterion = torch.nn.MSELoss()  # MSE 损失c
     min_val_loss = float('inf')
 
     # 断点续训，加载模型
@@ -41,55 +42,77 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
 
     # 训练循环
     for epoch in range(start_epoch, train_epoch + 1):
-        train_loss = 0
+        train_loss, train_mse, train_cos_sim = 0, 0, 0
         model.train()
         # 训练进度条
-        with tqdm(total=len(train_dl), desc=f"Epoch {epoch}/{train_epoch} [Training]", leave=True, unit="it", unit_scale=False) as train_bar:
+        with tqdm(total=len(train_dl), desc=f"Epoch {epoch}/{train_epoch} [Training]", leave=True, unit="it",
+                  unit_scale=False, ncols=200) as train_bar:
             for batch_idx, (info, _input, target) in enumerate(train_dl):  # for each data set
                 optimizer.zero_grad()
                 src = _input.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
                 tgt = target.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
                 pred = model(src).double()
+
                 loss = criterion(pred, tgt)
+                mse = mse_criterion(pred, tgt)
+                cos_sim = torch.mean(F.cosine_similarity(pred, tgt, dim=-1))
+
                 loss.backward()
                 optimizer.step()
 
                 # 累加损失
                 train_loss += loss.detach().item()
+                train_mse += mse.detach().item()
+                train_cos_sim += cos_sim.detach().item()
+
                 avg_loss = train_loss / (batch_idx + 1)  # 当前平均损失
-                train_bar.set_postfix(avg_loss=f"{avg_loss:.4f}")
+                avg_mse = train_mse / (batch_idx + 1)
+                avg_cos_sim = train_cos_sim / (batch_idx + 1)
+
+                train_bar.set_postfix(loss=f"{avg_loss:.4f}", mse=f"{avg_mse:.4f}", cos_sim=f"{avg_cos_sim:.4f}")
                 train_bar.update(1)
 
         # 计算平均训练损失
         train_loss /= len(train_dl)
+        train_mse /= len(train_dl)
+        train_cos_sim /= len(train_dl)
 
         # 验证阶段
-        val_loss = 0
+        val_loss, val_mse, val_cos_sim = 0, 0, 0
         model.eval()
-        with tqdm(total=len(val_dl), desc=f"Epoch {epoch}/{train_epoch} [Validation]", leave=True, unit="it", unit_scale=False) as val_bar:
+        with tqdm(total=len(val_dl), desc=f"Epoch {epoch}/{train_epoch} [Validation]", leave=True, unit="it",
+                  unit_scale=False, ncols=100) as val_bar:
             with torch.no_grad():
                 for batch_idx, (info, _input, target) in enumerate(val_dl):
                     src = _input.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
                     tgt = target.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
                     pred = model(src).double()
+
                     loss = criterion(pred, tgt)
+                    mse = mse_criterion(pred, tgt)
+                    cos_sim = torch.mean(F.cosine_similarity(pred, tgt, dim=-1))
 
                     # 累加损失
                     val_loss += loss.detach().item()
+                    val_mse += mse.detach().item()
+                    val_cos_sim += cos_sim.detach().item()
 
                     avg_loss = val_loss / (batch_idx + 1)  # 当前平均损失
-                    val_bar.set_postfix(avg_loss=f"{avg_loss:.4f}")
+                    avg_mse = val_mse / (batch_idx + 1)
+                    avg_cos_sim = val_cos_sim / (batch_idx + 1)
+
+                    val_bar.set_postfix(loss=f"{avg_loss:.4f}", mse=f"{avg_mse:.4f}", cos_sim=f"{avg_cos_sim:.4f}")
                     val_bar.update(1)
 
             val_loss /= len(val_dl)
+            val_mse /= len(val_dl)
+            val_cos_sim /= len(val_dl)
 
-        # 更新学习率（CosineAnnealingWarmRestarts 会自动调整）
-        # scheduler.step(epoch)
-
-        # 记录训练和验证损失
-        logger.info(f"Epoch: {epoch}, Train_loss: {train_loss:.4f}, Val_loss: {val_loss:.4f}, "
-                    f"LR: {optimizer.param_groups[0]['lr']:.6f}")
-        log_loss(epoch, train_loss, val_loss, path_to_save_loss)
+        # 训练日志
+        logger.info(
+            f"Epoch: {epoch}, Train_loss: {train_loss:.4f}, Train_MSE: {train_mse:.4f}, Train_CosSim: {train_cos_sim:.4f}, "
+            f"Val_loss: {val_loss:.4f}, Val_MSE: {val_mse:.4f}, Val_CosSim: {val_cos_sim:.4f}, "
+            f"LR: {optimizer.param_groups[0]['lr']:.6f}")
 
         # 如果当前验证损失较小，则保存最优模型
         if val_loss < min_val_loss:

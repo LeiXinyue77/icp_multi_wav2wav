@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     # load the test data
     root_dir = 'data'
-    folders = ['folder2']
+    folders = ['folder5']
     for folder in folders:
         for root, dirs, files in os.walk(os.path.join(root_dir, folder)):
             for file in files:

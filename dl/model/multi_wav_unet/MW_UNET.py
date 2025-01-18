@@ -205,9 +205,9 @@ class Multi_Wav_UNet(nn.Module):
         up_4 = self.up_4(skip_4)
 
         out = self.out(up_4)
-        # final_out = self.sigmoid(out)
+        final_out = self.sigmoid(out)
 
-        return out
+        return final_out
 
 
 # cpu版本测试
