@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 
 
-def log_loss(epoch, train_epoch_loss, val_epoch_loss, path_to_save_loss):
+def log_loss(epoch, train_loss, val_loss, train_mse, val_mse, train_cos_sim, val_cos_sim, path_to_save_loss):
 
-    loss = [epoch, train_epoch_loss, val_epoch_loss]
+    loss = [epoch, train_loss, val_loss, train_mse, val_mse, train_cos_sim, val_cos_sim]
     data = pd.DataFrame([loss])
     if not os.path.isdir(path_to_save_loss):
         os.mkdir(path_to_save_loss)

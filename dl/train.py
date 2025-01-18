@@ -33,12 +33,12 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
 
     # 断点续训，加载模型
     if resume:
-        path_checkpoint = f"{path_to_save_model}/ckpt_best.pth"
+        path_checkpoint = f"{path_to_save_model}/ckpt_model_100.pth"
         checkpoint = torch.load(path_checkpoint)
         model.load_state_dict(checkpoint['net'])
         optimizer.load_state_dict(checkpoint['optimizer'])
         start_epoch = checkpoint['epoch'] + 1
-        min_val_loss = checkpoint['min_val_loss']
+        min_val_loss = checkpoint['val_loss']
 
     # 训练循环
     for epoch in range(start_epoch, train_epoch + 1):
@@ -113,6 +113,8 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
             f"Epoch: {epoch}, Train_loss: {train_loss:.4f}, Train_MSE: {train_mse:.4f}, Train_CosSim: {train_cos_sim:.4f}, "
             f"Val_loss: {val_loss:.4f}, Val_MSE: {val_mse:.4f}, Val_CosSim: {val_cos_sim:.4f}, "
             f"LR: {optimizer.param_groups[0]['lr']:.6f}")
+
+        log_loss(epoch, train_loss, val_loss, train_mse, val_mse, train_cos_sim, val_cos_sim, path_to_save_loss)
 
         # 如果当前验证损失较小，则保存最优模型
         if val_loss < min_val_loss:

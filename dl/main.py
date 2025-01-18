@@ -12,7 +12,7 @@ torch.backends.cudnn.benchmark = False    # 禁用 cuDNN 自动优化，确保�
 
 
 def main(
-        epoch: int = 300,
+        epoch: int = 200,
         batch_size: int = 32,
         path_to_save_model="result/save_model",
         path_to_save_loss="result/save_loss",
@@ -57,18 +57,21 @@ def main(
         # resume = fold == 1    # Resume training for the first fold
         Train(train_dl=train_dataloader, val_dl=val_dataloader, train_epoch=epoch,
               path_to_save_model=fold_model_path, path_to_save_loss=fold_loss_path,
-              device=device, resume=False)
+              device=device, resume=True)
 
         # Print fold completion
         print(f"======================= Training Fold {fold} completed successfully !!! ===========================")
+
         # Increment fold count
         fold += 1
 
+        if fold > 1:
+            break
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--epoch", type=int, default=300, help="Number of training epochs.")
+    parser.add_argument("--epoch", type=int, default=200, help="Number of training epochs.")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size for DataLoader.")
     parser.add_argument("--path_to_save_model", type=str, default="result/save_model",
                         help="Path to save trained model.")

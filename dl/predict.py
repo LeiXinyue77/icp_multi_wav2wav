@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 
+from dl.helpers import setup_seed
 from dl.model.idv_net.IDV_NET import IVD_Net_asym
 from dl.model.multi_wav_unet.MW_UNET import Multi_Wav_UNet
 from dl.model.multi_wav_unet.mw_unet_separableConv import Multi_Wav_UNet_SeparableConv
@@ -35,13 +36,16 @@ def plot_pred_signals(signals, titles, suptitle):
     plt.tight_layout()
     plt.subplots_adjust(top=0.95)  # Adjust top to make space for suptitle
     plt.show()
-
+    # plt.savefig(f"result/save_predict_png/{suptitle}.png", dpi=600)
+    # print(f"Save {suptitle} successfully!")
 
 if __name__ == "__main__":
 
+    # setup_seed(22)
+
     # load the model
     model = Multi_Wav_UNet(input_nc=1, output_nc=1, ngf=8).double().to(device)
-    path_to_save_model = "dl/result/save_model/fold1/ckpt_best.pth"
+    path_to_save_model = "result/save_model/20250117_1_multi_wav_unet/fold1/ckpt_best.pth"
     if os.path.isdir(path_to_save_model):
         checkpoint = torch.load(
             path_to_save_model, map_location=device, weights_only=True)
@@ -50,7 +54,7 @@ if __name__ == "__main__":
 
     # load the test data
     root_dir = 'data'
-    folders = ['folder5']
+    folders = ['folder2']
     for folder in folders:
         for root, dirs, files in os.walk(os.path.join(root_dir, folder)):
             for file in files:
@@ -109,6 +113,7 @@ if __name__ == "__main__":
                         signals = np.column_stack((pred, target))
                         plot_signals(signals, ['Predict ICP', 'Target ICP'], title=f"{file} Predict vs Target ICP")
                         print("Only Pred and Target")
+
 
                     except Exception as e:
                         print(f"Error reading file {file_path}: {e}")
