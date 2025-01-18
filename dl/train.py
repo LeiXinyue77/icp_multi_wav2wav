@@ -81,7 +81,7 @@ def Train(train_dl, val_dl, train_epoch, path_to_save_model, path_to_save_loss, 
         val_loss, val_mse, val_cos_sim = 0, 0, 0
         model.eval()
         with tqdm(total=len(val_dl), desc=f"Epoch {epoch}/{train_epoch} [Validation]", leave=True, unit="it",
-                  unit_scale=False, ncols=100) as val_bar:
+                  unit_scale=False, ncols=200) as val_bar:
             with torch.no_grad():
                 for batch_idx, (info, _input, target) in enumerate(val_dl):
                     src = _input.permute(0, 2, 1)  # torch.Size([batch_size, n_features, n_samples])
